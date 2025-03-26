@@ -4,6 +4,13 @@ include '/Buildify/config.php';
 
 $error = '';
 
+if (isset($_SESSION['success'])) {
+    $success_message = $_SESSION['success'];
+    unset($_SESSION['success']); // Clear the message after displaying it
+} else {
+    $success_message = null;
+}
+
 if (isset($_POST['submit'])) {
     $email = mysqli_real_escape_string($conn, $_POST['email']);
     $password = mysqli_real_escape_string($conn, $_POST['password']);
@@ -59,6 +66,12 @@ if (isset($_POST['submit'])) {
         </div>
         <!-- Right Section -->
         <div class="md:w-1/2 p-10">
+            <?php if ($success_message): ?>
+                <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-6" role="alert">
+                    <strong class="font-bold">Success!</strong>
+                    <span class="block sm:inline"><?= $success_message; ?></span>
+                </div>
+            <?php endif; ?>
             <h2 class="text-3xl font-bold text-gray-800 mb-8 text-center animate-pop-in">Sign In</h2>
             <!-- Error Message -->
             <?php if (!empty($error)) : ?>
