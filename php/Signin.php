@@ -6,7 +6,7 @@ $error = '';
 
 if (isset($_SESSION['success'])) {
     $success_message = $_SESSION['success'];
-    unset($_SESSION['success']); // Clear the message after displaying it
+    unset($_SESSION['success']);
 } else {
     $success_message = null;
 }
