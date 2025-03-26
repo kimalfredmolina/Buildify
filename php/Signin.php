@@ -1,3 +1,41 @@
+<?php
+session_start();
+include '/Buildify/config.php';
+
+$error = '';
+
+if (isset($_POST['submit'])) {
+    $email = mysqli_real_escape_string($conn, $_POST['email']);
+    $password = mysqli_real_escape_string($conn, $_POST['password']);
+
+    if (!empty($email) && !empty($password)) {
+        $query_email = "SELECT * FROM user_account WHERE Email = '$email'";
+        $result_email = mysqli_query($conn, $query_email);
+
+        if ($result_email && mysqli_num_rows($result_email) > 0) {
+            $row_user = mysqli_fetch_assoc($result_email);
+
+            if (isset($row_user['Password'])) {
+                $hashed_password = $row_user['Password'];
+
+                if (password_verify($password, $hashed_password)) {
+                    $_SESSION['name'] = $row_user['Name'];
+                    header('location: /php/Homepage.php');
+                    exit();
+                } else {
+                    $error = 'Incorrect password!';
+                }
+            } else {
+                $error = 'Password column not found in database row!';
+            }
+        } else {
+            $error = 'Incorrect email!';
+        }
+    } else {
+        $error = 'Please fill in all fields!';
+    }
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -22,24 +60,27 @@
         <!-- Right Section -->
         <div class="md:w-1/2 p-10">
             <h2 class="text-3xl font-bold text-gray-800 mb-8 text-center animate-pop-in">Sign In</h2>
-            <form class="space-y-6">
+            <!-- Error Message -->
+            <?php if (!empty($error)) : ?>
+                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6" role="alert">
+                    <strong class="font-bold">Error!</strong>
+                    <span class="block sm:inline"><?= htmlspecialchars($error); ?></span>
+                </div>
+            <?php endif; ?>
+            <form action="/php/Signin.php" method="POST" class="space-y-6">
                 <div>
                     <label for="email" class="block text-base font-medium text-gray-700">Email</label>
-                    <input id="email" name="email" type="email" placeholder="Email@gmail.com" class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-pink-500 focus:border-pink-500 animate-fade-in">
+                    <input id="email" name="email" type="email" placeholder="Email@gmail.com" required
+                        class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-pink-500 focus:border-pink-500 animate-fade-in">
                 </div>
                 <div class="relative">
                     <label for="password" class="block text-base font-medium text-gray-700">Password</label>
-                    <input id="password" name="password" type="password" placeholder="Password" class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-pink-500 focus:border-pink-500 animate-fade-in">
-                    <img id="togglePasswordIcon" src="/images/openeye.png" alt="Toggle Password Visibility" class="absolute bottom-0.5 right-3 w-6 h-6 transform -translate-y-1/2 cursor-pointer" onclick="togglePasswordVisibility()">
+                    <input id="password" name="password" type="password" placeholder="Password" required
+                        class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-pink-500 focus:border-pink-500 animate-fade-in">
+                    <img id="togglePasswordIcon" src="/images/openeye.png" alt="Toggle Password Visibility"
+                        class="absolute bottom-0.5 right-3 w-6 h-6 transform -translate-y-1/2 cursor-pointer" onclick="togglePasswordVisibility()">
                 </div>
-                <div class="flex items-center justify-between">
-                    <label class="inline-flex items-center">
-                        <input type="checkbox" class="form-checkbox text-pink-500 animate-slide-in">
-                        <span class="ml-2 text-base text-gray-700">Remember Me</span>
-                    </label>
-                    <a href="#" class="text-base text-pink-500 hover:underline">Forgot Password?</a>
-                </div>
-                <button type="submit" class="w-full bg-pink-500 text-white py-3 px-6 rounded-md hover:bg-pink-600 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-opacity-50 animate-pop-in">
+                <button type="submit" name="submit" class="w-full bg-pink-500 text-white py-3 px-6 rounded-md hover:bg-pink-600 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-opacity-50 animate-pop-in">
                     Sign In
                 </button>
             </form>

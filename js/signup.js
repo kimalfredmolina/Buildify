@@ -3,7 +3,7 @@ function togglePasswordVisibility(inputId, iconId) {
     const icon = document.getElementById(iconId);
     if (input.type === "password") {
         input.type = "text";
-        icon.src = "/images/closeeye.png"; 
+        icon.src = "/images/eyebrow.png"; 
     } else {
         input.type = "password";
         icon.src = "/images/openeye.png";
