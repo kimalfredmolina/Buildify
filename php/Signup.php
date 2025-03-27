@@ -6,8 +6,9 @@ if (isset($_POST['register'])) {
     $email = mysqli_real_escape_string($conn, $_POST['email']);
     $password = mysqli_real_escape_string($conn, $_POST['password']);
     $confirm_password = mysqli_real_escape_string($conn, $_POST['retypepassword']);
+    $name = mysqli_real_escape_string($conn, $_POST['name']);
 
-    if (!empty($email) && !empty($password) && !empty($confirm_password)) {
+    if (!empty($email) && !empty($password) && !empty($confirm_password) && !empty($name)) {
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $error = 'Invalid email format!';
         } elseif ($password !== $confirm_password) {
@@ -21,7 +22,7 @@ if (isset($_POST['register'])) {
             } else {
                 $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
-                $insert_query = "INSERT INTO user_account (email, password) VALUES ('$email', '$hashed_password')";
+                $insert_query = "INSERT INTO user_account (email, password, name) VALUES ('$email', '$hashed_password', '$name')";
 
                 if (mysqli_query($conn, $insert_query)) {
                     $_SESSION['success'] = 'Account created successfully! You can now sign in.';
@@ -67,6 +68,11 @@ if (isset($_POST['register'])) {
                 <div>
                     <label for="email" class="block text-base font-medium text-gray-700">Email</label>
                     <input id="email" name="email" type="email" placeholder="Email@gmail.com" required
+                        class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-pink-500 focus:border-pink-500">
+                </div>
+                <div>
+                    <label for="name" class="block text-base font-medium text-gray-700">Name</label>
+                    <input id="name" name="name" type="text" placeholder="Your Name" required
                         class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-pink-500 focus:border-pink-500">
                 </div>
                 <div class="relative">
