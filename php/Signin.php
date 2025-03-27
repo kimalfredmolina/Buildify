@@ -55,7 +55,7 @@ if (isset($_POST['submit'])) {
 </head>
 
 <body class="flex items-center justify-center min-h-screen bg-gray-100">
-    <div class="absolute inset-0 -z-10 h-full w-full items-center px-5 py-24 [background:radial-gradient(125%_125%_at_50%_10%,#000_40%,#63e_100%)]"></div>
+    <div class="absolute top-0 z-[-2] h-screen w-screen bg-[#000000] bg-[radial-gradient(#ffffff33_1px,#00091d_1px)] bg-[size:20px_20px]"></div>
     <div class="flex flex-col md:flex-row bg-white rounded-lg shadow-lg max-w-5xl w-full overflow-hidden">
         <!-- Left Section -->
         <div class="md:w-1/2 p-8 flex flex-col justify-center bg-slate-800">
