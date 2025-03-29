@@ -13,3 +13,7 @@ html, body {
 html {
     scroll-behavior: smooth;
 }
+.user-name {
+    color: #FF5733;
+    font-weight: bold;
+}
