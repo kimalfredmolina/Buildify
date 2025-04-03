@@ -2,10 +2,9 @@
 session_start();
 include '/Buildify/config.php';
 
-// Get project ID from URL
 $projectId = isset($_GET['id']) ? intval($_GET['id']) : null;
 
-// Fetch project details
+// para sa fetching ng project details sa database
 $project = [];
 if ($projectId) {
     $stmt = $conn->prepare("SELECT * FROM projects WHERE id = ?");
@@ -19,11 +18,13 @@ if ($projectId) {
     }
 }
 
-// Handle block configuration submission
+// handle the block creation and deletion
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['add_block'])) {
         $blockType = $_POST['block_type'] ?? '';
-        $blockData = json_encode([
+
+        // constant blocks, designs and styles
+        $blockData = [
             'title' => $_POST['title'] ?? '',
             'background_color' => $_POST['background_color'] ?? '#ffffff',
             'font_style' => $_POST['font_style'] ?? 'Arial',
@@ -31,19 +32,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'font_size' => $_POST['font_size'] ?? '16',
             'font_weight' => $_POST['font_weight'] ?? 'normal',
             'text' => $_POST['text'] ?? '',
-            'logo_url' => $_POST['logo_url'] ?? '',
-            'menu_items' => $_POST['menu_items'] ?? 'Home,About Us,Contact Us'
-        ]);
+            'padding' => $_POST['padding'] ?? '20',
+            'margin' => $_POST['margin'] ?? '0',
+            'border_radius' => $_POST['border_radius'] ?? '0'
+        ];
+
+        // specific blocks components
+        switch ($blockType) {
+            case 'header':
+                $blockData['logo_url'] = $_POST['logo_url'] ?? '';
+                $blockData['menu_items'] = $_POST['menu_items'] ?? 'Home,About Us,Contact Us';
+                break;
+
+            case 'main_content':
+                $blockData['columns'] = $_POST['columns'] ?? '1';
+                $blockData['content_type'] = $_POST['content_type'] ?? 'text';
+                $blockData['image_url'] = $_POST['image_url'] ?? '';
+                $blockData['button_text'] = $_POST['button_text'] ?? '';
+                $blockData['button_url'] = $_POST['button_url'] ?? '';
+                $blockData['button_color'] = $_POST['button_color'] ?? '#007bff';
+                break;
+
+            case 'forms':
+                $blockData['form_type'] = $_POST['form_type'] ?? 'contact';
+                $blockData['form_fields'] = $_POST['form_fields'] ?? 'name,email,message';
+                break;
+
+            case 'footer':
+                $blockData['copyright_text'] = $_POST['copyright_text'] ?? 'Copyright © ' . date('Y');
+                $blockData['social_links'] = $_POST['social_links'] ?? '';
+                break;
+        }
 
         $stmt = $conn->prepare("INSERT INTO project_blocks (project_id, block_type, data) VALUES (?, ?, ?)");
-        $stmt->bind_param("iss", $projectId, $blockType, $blockData);
+        $stmt->bind_param("iss", $projectId, $blockType, json_encode($blockData));
         $stmt->execute();
 
         header("Location: Project.php?id=$projectId");
         exit();
     }
 
-    // Delete block
     if (isset($_POST['delete_block'])) {
         $blockId = intval($_POST['block_id']);
         $stmt = $conn->prepare("DELETE FROM project_blocks WHERE id = ?");
@@ -61,7 +89,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Buildify CMS - Edit Project</title>
+    <title>Buildify - Edit Project</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
@@ -80,11 +108,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             display: flex;
         }
 
-        .tab-content {
+        .block-fields {
             display: none;
         }
 
-        .tab-content.active {
+        .block-fields.active {
             display: block;
         }
     </style>
@@ -93,7 +121,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body class="bg-gray-100 font-sans">
     <div class="flex flex-row h-screen">
         <!-- Components Panel -->
-        <div class="w-64 bg-gray-800 text-white p-4">
+        <div class="w-70 bg-gray-800 text-white p-4 overflow-y-auto">
             <h2 class="text-xl font-bold mb-6 flex items-center">
                 <i class="fas fa-cubes mr-2"></i> Components
             </h2>
@@ -105,7 +133,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <label class="block text-gray-300 text-sm font-bold mb-2" for="block_type">
                         Block Type
                     </label>
-                    <select class="w-full bg-gray-700 text-white rounded p-2" id="block_type" name="block_type" required>
+                    <select class="w-full bg-gray-700 text-white rounded p-2" id="block_type" name="block_type" required
+                        onchange="showBlockFields(this.value)">
                         <option value="">Select a block</option>
                         <option value="header">Header</option>
                         <option value="main_content">Main Content</option>
@@ -114,19 +143,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </select>
                 </div>
 
-                <div id="header-fields">
+                <!-- Common Fields for All Blocks -->
+                <div class="common-fields">
                     <div class="mb-3">
                         <label class="block text-gray-300 text-sm font-bold mb-2" for="title">
                             Title
                         </label>
-                        <input class="w-full bg-gray-700 text-white rounded p-2" id="title" type="text" name="title">
+                        <input class="w-full bg-gray-700 text-white rounded p-2" id="title" name="title">
                     </div>
 
                     <div class="mb-3">
-                        <label class="block text-gray-300 text-sm font-bold mb-2" for="logo_url">
-                            Icon Logo URL
+                        <label class="block text-gray-300 text-sm font-bold mb-2" for="text">
+                            Content
                         </label>
-                        <input class="w-full bg-gray-700 text-white rounded p-2" id="logo_url" type="text" name="logo_url" placeholder="https://example.com/logo.png">
+                        <textarea class="w-full bg-gray-700 text-white rounded p-2" id="text" name="text" rows="4"></textarea>
                     </div>
 
                     <div class="mb-3">
@@ -136,47 +166,172 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <input class="w-full h-10" id="background_color" type="color" name="background_color" value="#ffffff">
                     </div>
 
-                    <div class="mb-3">
-                        <label class="block text-gray-300 text-sm font-bold mb-2" for="font_style">
-                            Font Style
-                        </label>
-                        <select class="w-full bg-gray-700 text-white rounded p-2" id="font_style" name="font_style">
-                            <option value="Arial, sans-serif">Arial</option>
-                            <option value="'Helvetica Neue', sans-serif">Helvetica</option>
-                            <option value="Georgia, serif">Georgia</option>
-                        </select>
+                    <div class="mb-3 grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-gray-300 text-sm font-bold mb-2" for="font_style">
+                                Font Style
+                            </label>
+                            <select class="w-full bg-gray-700 text-white rounded p-2" id="font_style" name="font_style">
+                                <option value="Arial, sans-serif">Arial</option>
+                                <option value="'Helvetica Neue', sans-serif">Helvetica</option>
+                                <option value="Georgia, serif">Georgia</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-gray-300 text-sm font-bold mb-2" for="font_color">
+                                Font Color
+                            </label>
+                            <input class="w-full h-10" id="font_color" type="color" name="font_color" value="#000000">
+                        </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="block text-gray-300 text-sm font-bold mb-2" for="font_color">
-                            Font Color
-                        </label>
-                        <input class="w-full h-10" id="font_color" type="color" name="font_color" value="#000000">
+                    <div class="mb-3 grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-gray-300 text-sm font-bold mb-2" for="font_size">
+                                Font Size (px)
+                            </label>
+                            <input class="w-full bg-gray-700 text-white rounded p-2" id="font_size" type="number" name="font_size" min="8" max="72" value="16">
+                        </div>
+                        <div>
+                            <label class="block text-gray-300 text-sm font-bold mb-2" for="font_weight">
+                                Font Weight
+                            </label>
+                            <select class="w-full bg-gray-700 text-white rounded p-2" id="font_weight" name="font_weight">
+                                <option value="normal">Normal</option>
+                                <option value="bold">Bold</option>
+                                <option value="lighter">Light</option>
+                            </select>
+                        </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="block text-gray-300 text-sm font-bold mb-2" for="font_size">
-                            Font Size (px)
-                        </label>
-                        <input class="w-full bg-gray-700 text-white rounded p-2" id="font_size" type="number" name="font_size" min="8" max="72" value="16">
+                    <div class="mb-3 grid grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-gray-300 text-sm font-bold mb-2" for="padding">
+                                Padding
+                            </label>
+                            <input class="w-full bg-gray-700 text-white rounded p-2" id="padding" type="number" name="padding" min="0" max="100" value="20">
+                        </div>
+                        <div>
+                            <label class="block text-gray-300 text-sm font-bold mb-2" for="margin">
+                                Margin
+                            </label>
+                            <input class="w-full bg-gray-700 text-white rounded p-2" id="margin" type="number" name="margin" min="0" max="100" value="0">
+                        </div>
+                        <div>
+                            <label class="block text-gray-300 text-sm font-bold mb-2" for="border_radius">
+                                Border Radius
+                            </label>
+                            <input class="w-full bg-gray-700 text-white rounded p-2" id="border_radius" type="number" name="border_radius" min="0" max="50" value="0">
+                        </div>
                     </div>
+                </div>
 
+                <!-- Header Specific Fields -->
+                <div id="header-fields" class="block-fields">
                     <div class="mb-3">
-                        <label class="block text-gray-300 text-sm font-bold mb-2" for="font_weight">
-                            Font Weight
+                        <label class="block text-gray-300 text-sm font-bold mb-2" for="logo_url">
+                            Logo URL
                         </label>
-                        <select class="w-full bg-gray-700 text-white rounded p-2" id="font_weight" name="font_weight">
-                            <option value="normal">Normal</option>
-                            <option value="bold">Bold</option>
-                            <option value="lighter">Light</option>
-                        </select>
+                        <input class="w-full bg-gray-700 text-white rounded p-2" id="logo_url" name="logo_url">
                     </div>
 
                     <div class="mb-3">
                         <label class="block text-gray-300 text-sm font-bold mb-2" for="menu_items">
                             Menu Items (comma separated)
                         </label>
-                        <input class="w-full bg-gray-700 text-white rounded p-2" id="menu_items" type="text" name="menu_items" value="Home,About Us,Contact Us">
+                        <input class="w-full bg-gray-700 text-white rounded p-2" id="menu_items" name="menu_items" value="Home,About Us,Contact Us">
+                    </div>
+                </div>
+
+                <!-- Main Content Specific Fields -->
+                <div id="main-content-fields" class="block-fields">
+                    <div class="mb-3">
+                        <label class="block text-gray-300 text-sm font-bold mb-2" for="content_type">
+                            Content Type
+                        </label>
+                        <select class="w-full bg-gray-700 text-white rounded p-2" id="content_type" name="content_type">
+                            <option value="text">Text</option>
+                            <option value="image">Image</option>
+                            <option value="text_image">Text + Image</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="block text-gray-300 text-sm font-bold mb-2" for="columns">
+                            Columns
+                        </label>
+                        <select class="w-full bg-gray-700 text-white rounded p-2" id="columns" name="columns">
+                            <option value="1">1 Column</option>
+                            <option value="2">2 Columns</option>
+                            <option value="3">3 Columns</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="block text-gray-300 text-sm font-bold mb-2" for="image_url">
+                            Image URL
+                        </label>
+                        <input class="w-full bg-gray-700 text-white rounded p-2" id="image_url" name="image_url">
+                    </div>
+
+                    <div class="mb-3 grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-gray-300 text-sm font-bold mb-2" for="button_text">
+                                Button Text
+                            </label>
+                            <input class="w-full bg-gray-700 text-white rounded p-2" id="button_text" name="button_text">
+                        </div>
+                        <div>
+                            <label class="block text-gray-300 text-sm font-bold mb-2" for="button_url">
+                                Button URL
+                            </label>
+                            <input class="w-full bg-gray-700 text-white rounded p-2" id="button_url" name="button_url">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="block text-gray-300 text-sm font-bold mb-2" for="button_color">
+                            Button Color
+                        </label>
+                        <input class="w-full h-10" id="button_color" type="color" name="button_color" value="#007bff">
+                    </div>
+                </div>
+
+                <!-- Forms Specific Fields -->
+                <div id="forms-fields" class="block-fields">
+                    <div class="mb-3">
+                        <label class="block text-gray-300 text-sm font-bold mb-2" for="form_type">
+                            Form Type
+                        </label>
+                        <select class="w-full bg-gray-700 text-white rounded p-2" id="form_type" name="form_type">
+                            <option value="contact">Contact Form</option>
+                            <option value="newsletter">Newsletter</option>
+                            <option value="survey">Survey</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="block text-gray-300 text-sm font-bold mb-2" for="form_fields">
+                            Form Fields (comma separated)
+                        </label>
+                        <input class="w-full bg-gray-700 text-white rounded p-2" id="form_fields" name="form_fields" value="name,email,message">
+                    </div>
+                </div>
+
+                <!-- Footer Specific Fields -->
+                <div id="footer-fields" class="block-fields">
+                    <div class="mb-3">
+                        <label class="block text-gray-300 text-sm font-bold mb-2" for="copyright_text">
+                            Copyright Text
+                        </label>
+                        <input class="w-full bg-gray-700 text-white rounded p-2" id="copyright_text" name="copyright_text" value="Copyright © <?php echo date('Y'); ?>">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="block text-gray-300 text-sm font-bold mb-2" for="social_links">
+                            Social Links (comma separated)
+                        </label>
+                        <input class="w-full bg-gray-700 text-white rounded p-2" id="social_links" name="social_links" placeholder="facebook.com, twitter.com, instagram.com">
                     </div>
                 </div>
 
@@ -215,7 +370,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $blockId = $block['id'];
                         $blockType = $block['block_type'];
                 ?>
-                        <div class="block-container relative p-4">
+                        <div class="block-container relative p-4" style="
+                            background-color: <?php echo $blockData['background_color']; ?>;
+                            padding: <?php echo $blockData['padding']; ?>px;
+                            margin: <?php echo $blockData['margin']; ?>px;
+                            border-radius: <?php echo $blockData['border_radius']; ?>px;
+                        ">
                             <div class="block-actions absolute right-4 top-4 space-x-2">
                                 <button class="edit-block bg-blue-500 text-white p-1 rounded" data-block-id="<?php echo $blockId; ?>">
                                     <i class="fas fa-edit"></i>
@@ -232,34 +392,118 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             // Render block based on type
                             switch ($blockType) {
                                 case 'header':
-                                    echo '<div style="background-color:' . $blockData['background_color'] . ';padding:20px;border-radius:4px;">';
+                                    echo '<div class="flex items-center">';
                                     if (!empty($blockData['logo_url'])) {
-                                        echo '<img src="' . htmlspecialchars($blockData['logo_url']) . '" alt="Logo" style="height:40px;display:inline-block;vertical-align:middle;margin-right:20px;">';
+                                        echo '<img src="' . htmlspecialchars($blockData['logo_url']) . '" alt="Logo" style="height:40px;margin-right:20px;">';
                                     }
-                                    echo '<h1 style="display:inline-block;font-family:' . $blockData['font_style'] . ';color:' . $blockData['font_color'] . ';font-size:' . $blockData['font_size'] . 'px;font-weight:' . $blockData['font_weight'] . ';">';
+                                    echo '<h1 style="font-family:' . $blockData['font_style'] . ';color:' . $blockData['font_color'] . ';font-size:' . $blockData['font_size'] . 'px;font-weight:' . $blockData['font_weight'] . ';">';
                                     echo htmlspecialchars($blockData['title'] ?? 'Header');
                                     echo '</h1>';
 
                                     // Render menu items
                                     if (!empty($blockData['menu_items'])) {
                                         $items = explode(',', $blockData['menu_items']);
-                                        echo '<nav style="float:right;margin-top:10px;">';
+                                        echo '<div style="margin-left:auto;">';
                                         foreach ($items as $item) {
                                             echo '<a href="#" style="font-family:' . $blockData['font_style'] . ';color:' . $blockData['font_color'] . ';font-size:' . ($blockData['font_size'] - 2) . 'px;margin-left:15px;text-decoration:none;">';
                                             echo htmlspecialchars(trim($item));
                                             echo '</a>';
                                         }
-                                        echo '</nav>';
+                                        echo '</div>';
+                                    }
+                                    echo '</div>';
+                                    break;
+
+                                case 'main_content':
+                                    echo '<h2 style="font-family:' . $blockData['font_style'] . ';color:' . $blockData['font_color'] . ';font-size:' . ($blockData['font_size'] + 2) . 'px;font-weight:bold;margin-bottom:15px;">';
+                                    echo htmlspecialchars($blockData['title'] ?? 'Main Content');
+                                    echo '</h2>';
+
+                                    echo '<div style="font-family:' . $blockData['font_style'] . ';color:' . $blockData['font_color'] . ';font-size:' . $blockData['font_size'] . 'px;font-weight:' . $blockData['font_weight'] . ';">';
+                                    echo nl2br(htmlspecialchars($blockData['text'] ?? ''));
+                                    echo '</div>';
+
+                                    if (!empty($blockData['image_url'])) {
+                                        echo '<div class="mt-4"><img src="' . htmlspecialchars($blockData['image_url']) . '" alt="Content Image" style="max-width:100%;"></div>';
+                                    }
+
+                                    if (!empty($blockData['button_text'])) {
+                                        echo '<div class="mt-4">';
+                                        echo '<a href="' . htmlspecialchars($blockData['button_url'] ?? '#') . '" style="';
+                                        echo 'background-color:' . $blockData['button_color'] . ';';
+                                        echo 'font-family:' . $blockData['font_style'] . ';';
+                                        echo 'color:white;';
+                                        echo 'font-size:' . $blockData['font_size'] . 'px;';
+                                        echo 'padding:8px 16px;';
+                                        echo 'border-radius:4px;';
+                                        echo 'display:inline-block;';
+                                        echo 'text-decoration:none;">';
+                                        echo htmlspecialchars($blockData['button_text']);
+                                        echo '</a>';
+                                        echo '</div>';
+                                    }
+                                    break;
+
+                                case 'forms':
+                                    echo '<h2 style="font-family:' . $blockData['font_style'] . ';color:' . $blockData['font_color'] . ';font-size:' . ($blockData['font_size'] + 2) . 'px;font-weight:bold;margin-bottom:15px;">';
+                                    echo htmlspecialchars($blockData['title'] ?? 'Form');
+                                    echo '</h2>';
+
+                                    if (!empty($blockData['form_fields'])) {
+                                        $fields = explode(',', $blockData['form_fields']);
+                                        echo '<form style="font-family:' . $blockData['font_style'] . ';color:' . $blockData['font_color'] . ';">';
+                                        foreach ($fields as $field) {
+                                            $field = trim($field);
+                                            echo '<div class="mb-3">';
+                                            echo '<label class="block mb-1">' . ucfirst($field) . '</label>';
+                                            echo '<input type="' . ($field === 'email' ? 'email' : 'text') . '" name="' . $field . '" class="w-full p-2 border rounded" style="font-family:inherit;">';
+                                            echo '</div>';
+                                        }
+                                        echo '<button type="submit" style="';
+                                        echo 'background-color:#007bff;';
+                                        echo 'color:white;';
+                                        echo 'font-family:inherit;';
+                                        echo 'padding:8px 16px;';
+                                        echo 'border-radius:4px;';
+                                        echo 'border:none;">';
+                                        echo 'Submit';
+                                        echo '</button>';
+                                        echo '</form>';
+                                    }
+                                    break;
+
+                                case 'footer':
+                                    echo '<div class="flex justify-between items-center">';
+                                    echo '<div style="font-family:' . $blockData['font_style'] . ';color:' . $blockData['font_color'] . ';font-size:' . $blockData['font_size'] . 'px;">';
+                                    echo htmlspecialchars($blockData['copyright_text'] ?? 'Copyright © ' . date('Y'));
+                                    echo '</div>';
+
+                                    if (!empty($blockData['social_links'])) {
+                                        $links = explode(',', $blockData['social_links']);
+                                        echo '<div>';
+                                        foreach ($links as $link) {
+                                            $link = trim($link);
+                                            if (!empty($link)) {
+                                                echo '<a href="' . htmlspecialchars($link) . '" target="_blank" style="';
+                                                echo 'color:' . $blockData['font_color'] . ';';
+                                                echo 'font-size:' . $blockData['font_size'] . 'px;';
+                                                echo 'margin-left:10px;';
+                                                echo 'text-decoration:none;">';
+                                                echo '<i class="fab fa-' . strtolower(parse_url($link, PHP_URL_HOST)) . '"></i>';
+                                                echo '</a>';
+                                            }
+                                        }
+                                        echo '</div>';
                                     }
                                     echo '</div>';
                                     break;
 
                                 default:
-                                    echo '<div style="background-color:' . $blockData['background_color'] . ';padding:20px;border-radius:4px;">';
-                                    echo '<h3 class="font-bold mb-2">' . ucfirst($blockType) . '</h3>';
+                                    echo '<h3 style="font-family:' . $blockData['font_style'] . ';color:' . $blockData['font_color'] . ';font-size:' . ($blockData['font_size'] + 2) . 'px;font-weight:bold;margin-bottom:10px;">';
+                                    echo ucfirst($blockType);
+                                    echo '</h3>';
                                     echo '<div style="font-family:' . $blockData['font_style'] . ';color:' . $blockData['font_color'] . ';font-size:' . $blockData['font_size'] . 'px;font-weight:' . $blockData['font_weight'] . ';">';
                                     echo nl2br(htmlspecialchars($blockData['text'] ?? ''));
-                                    echo '</div>';
                                     echo '</div>';
                             }
                             ?>
@@ -273,14 +517,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('block_type').addEventListener('change', function() {
-                document.getElementById('header-fields').style.display =
-                    this.value === 'header' ? 'block' : 'none';
+        function showBlockFields(blockType) {
+            document.querySelectorAll('.block-fields').forEach(el => {
+                el.classList.remove('active');
             });
-            if (document.getElementById('block_type').value === '') {
-                document.getElementById('header-fields').style.display = 'none';
+            if (blockType) {
+                document.getElementById(blockType + '-fields').classList.add('active');
             }
+        }
+        document.addEventListener('DOMContentLoaded', function() {
+            showBlockFields('');
         });
     </script>
 </body>
