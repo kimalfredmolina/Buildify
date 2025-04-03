@@ -8,30 +8,34 @@ $projectId = isset($_GET['id']) ? intval($_GET['id']) : null;
 // Fetch project details
 $project = [];
 if ($projectId) {
-    $stmt = $pdo->prepare("SELECT * FROM projects WHERE id = ?");
-    $stmt->execute([$projectId]);
-    $project = $stmt->fetch(PDO::FETCH_ASSOC);
+    $stmt = $conn->prepare("SELECT * FROM projects WHERE id = ?");
+    $stmt->bind_param("i", $projectId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $project = $result->fetch_assoc();
+
+    if (!$project) {
+        die("Project not found");
+    }
 }
 
 // Handle block configuration submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Get block data
-    $blockType = $_POST['block_type'];
+    $blockType = $_POST['block_type'] ?? '';
     $blockData = json_encode([
-        'background_color' => $_POST['background_color'],
-        'font_style' => $_POST['font_style'],
-        'font_color' => $_POST['font_color'],
-        'font_size' => $_POST['font_size'],
-        'font_weight' => $_POST['font_weight'],
-        'text' => $_POST['text'],
+        'background_color' => $_POST['background_color'] ?? '',
+        'font_style' => $_POST['font_style'] ?? '',
+        'font_color' => $_POST['font_color'] ?? '',
+        'font_size' => $_POST['font_size'] ?? '',
+        'font_weight' => $_POST['font_weight'] ?? '',
+        'text' => $_POST['text'] ?? '',
     ]);
 
-    // Insert or update block
-    $stmt = $pdo->prepare("INSERT INTO project_blocks (project_id, block_type, data) VALUES (?, ?, ?)");
-    $stmt->execute([$projectId, $blockType, $blockData]);
+    $stmt = $conn->prepare("INSERT INTO project_blocks (project_id, block_type, data) VALUES (?, ?, ?)");
+    $stmt->bind_param("iss", $projectId, $blockType, $blockData);
+    $stmt->execute();
 
-    // Redirect back to editor
-    header("Location: edit_project.php?id=$projectId");
+    header("Location: Project.php?id=$projectId");
     exit();
 }
 ?>
@@ -117,7 +121,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <!-- Editor Area -->
         <div class="flex-1 bg-gray-100 p-4">
-            <h2 class="text-lg font-bold mb-4">Project: <?php echo htmlspecialchars($project['name']); ?></h2>
+            <h2 class="text-lg font-bold mb-4">
+                Project: <?php
+                            // Check both possible column names
+                            $projectName = $project['project_name'] ?? $project['name'] ?? 'Untitled Project';
+                            echo htmlspecialchars($projectName);
+                            ?>
+            </h2>
             <div class="bg-white p-4 rounded shadow">
                 <!-- Display blocks here -->
                 <?php

@@ -27,6 +27,7 @@ if (isset($_POST['submit'])) {
 
                 if (password_verify($password, $hashed_password)) {
                     $_SESSION['name'] = $row_user['Name'];
+                    $_SESSION['user_id'] = $row_user['id'];
                     header('location: /php/Homepage.php');
                     exit();
                 } else {

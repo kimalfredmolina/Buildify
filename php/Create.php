@@ -2,12 +2,39 @@
 session_start();
 include '/Buildify/config.php';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $projectName = $_POST['project_name'];
-    $stmt = $pdo->prepare("INSERT INTO projects (user_id, name) VALUES (?, ?)");
-    $stmt->execute([1, $projectName]);
-    header("Location: /php/Project.php?id=" . $pdo->lastInsertId());
+if (!isset($_SESSION['user_id'])) {
+    header('Location: /php/Signin.php');
     exit();
+}
+
+$error = '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    try {
+        $projectName = $_POST['project_name'] ?? '';
+        if (empty($projectName)) {
+            throw new Exception("Project name is required");
+        }
+
+        $user_id = $_SESSION['user_id'];
+
+        // Verify user exists
+        $check_user = $conn->prepare("SELECT id FROM user_account WHERE id = ?");
+        $check_user->bind_param("i", $user_id);
+        $check_user->execute();
+        if ($check_user->get_result()->num_rows === 0) {
+            throw new Exception("User account doesn't exist. Please login again.");
+        }
+
+        // Insert project
+        $stmt = $conn->prepare("INSERT INTO projects (user_id, project_name, created_at) VALUES (?, ?, NOW())");
+        $stmt->bind_param("is", $user_id, $projectName);
+        $stmt->execute();
+
+        header("Location: /php/Project.php?id=" . $stmt->insert_id);
+        exit();
+    } catch (Exception $e) {
+        $error = $e->getMessage();
+    }
 }
 ?>
 
@@ -22,19 +49,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 
 <body class="bg-gray-100 font-sans leading-normal tracking-normal">
-    <div class="container w-full md:max-w-3xl mx-auto pt-20">
-        <div class="w-full px-4 md:px-6 text-xl text-gray-800 leading-normal">
-            <div class="font-sans font-bold break-normal pt-6 pb-2 text-center border-b-2 border-gray-200">
-                <p>Create New Project</p>
-            </div>
-            <form action="" method="POST" class="py-4">
+    <div class="container mx-auto pt-20 max-w-lg">
+        <div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+            <h2 class="text-xl font-bold text-center border-b pb-2">Create New Project</h2>
+
+            <?php if (!empty($error)) : ?>
+                <p class="text-red-500 text-sm mt-2"><?php echo htmlspecialchars($error); ?></p>
+            <?php endif; ?>
+
+            <form action="" method="POST" class="mt-4">
                 <div class="mb-4">
                     <label class="block text-gray-700 text-sm font-bold mb-2" for="project_name">
                         Project Name
                     </label>
-                    <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="project_name" type="text" placeholder="Enter project name" name="project_name" required>
+                    <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        id="project_name"
+                        type="text"
+                        placeholder="Enter project name"
+                        name="project_name"
+                        required>
                 </div>
-                <div class="flex items-center justify-between">
+                <div class="flex justify-center">
                     <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
                         Create
                     </button>
