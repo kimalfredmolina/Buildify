@@ -122,10 +122,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="flex flex-row h-screen">
         <!-- Components Panel -->
         <div class="w-70 bg-gray-800 text-white p-4 overflow-y-auto">
-            <a href="Homepage.php" class="text-xl font-bold mb-6 flex items-center">
+            <a href="Homepage.php" class="text-xl font-bold mb-6 flex items-center ml-24">
                 <i class="fas fa-home mr-2"></i> Home
             </a>
-            <h2 class="text-xl font-bold mb-6 flex items-center">
+            <h2 class="text-xl font-bold mb-6 flex items-center mt-12">
                 <i class="fas fa-cubes mr-2"></i> Components
             </h2>
 
