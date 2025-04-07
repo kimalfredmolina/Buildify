@@ -18,6 +18,21 @@ if ($projectId) {
     }
 }
 
+
+if (isset($_POST['update_project_name']) && isset($_GET['id'])) {
+    $newName = trim($_POST['project_name']);
+    $projectId = $_GET['id'];
+
+    if (!empty($newName)) {
+        $stmt = $conn->prepare("UPDATE projects SET project_name = ? WHERE id = ? AND user_id = ?");
+        $stmt->bind_param("sii", $newName, $projectId, $_SESSION['user_id']);
+        $stmt->execute();
+
+        header("Location: Project.php?id=$projectId");
+        exit();
+    }
+}
+
 // handle the block creation and deletion
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['add_block'])) {
@@ -347,16 +362,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <!-- Editor Area -->
         <div class="flex-1 p-6 overflow-auto">
             <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-bold">
-                    <i class="fas fa-pencil-alt mr-2"></i>
-                    <?php
-                    $projectName = $project['project_name'] ?? $project['name'] ?? 'Untitled Project';
-                    echo htmlspecialchars($projectName);
-                    ?>
-                </h2>
-                <button class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded">
-                    <i class="fas fa-save mr-1"></i> Save
-                </button>
+                <form method="POST" class="flex items-center space-x-2">
+                    <i class="fas fa-pencil-alt text-gray-600"></i>
+                    <input
+                        type="text"
+                        name="project_name"
+                        value="<?php echo htmlspecialchars($project['project_name'] ?? $project['name'] ?? 'Untitled Project'); ?>"
+                        class="border border-gray-300 rounded px-3 py-1 text-xl font-bold focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <button
+                        type="submit"
+                        name="update_project_name"
+                        class="bg-blue-500 text-white px-4 py-1 rounded hover:bg-blue-600 text-sm">
+                        Save
+                    </button>
+                </form>
             </div>
 
             <!-- Blocks Container -->
