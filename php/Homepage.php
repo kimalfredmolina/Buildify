@@ -26,9 +26,9 @@
 
         if (isset($_SESSION['name'])) {
             $userName = $_SESSION['name'];
-            echo "<h1 class='text-2xl font-bold'>Welcome! <span class='user-name'>$userName</span> Build a new project now!</h1>";
+            echo "<h1 class='text-2xl font-bold'>Welcome! <span class='user-name'>$userName</span> Build a new CMS project now!</h1>";
         } else {
-            echo "<h1 class='text-2xl font-bold'>Welcome! Guest Build a new project now!</h1>";
+            echo "<h1 class='text-2xl font-bold'>Welcome! Guest Build a new CMS project now!</h1>";
         }
         ?>
     </div>
