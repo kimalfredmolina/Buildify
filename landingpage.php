@@ -7,6 +7,7 @@
     <title>BuildiFy</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image/png" href="/images/buildifylogo2.png">
 </head>
 
 <body class="flex flex-col min-h-screen bg-white">

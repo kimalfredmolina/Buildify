@@ -48,6 +48,7 @@ if (isset($_POST['register'])) {
     <title>Sign Up - BuildiFy</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="/css/styles.css">
+    <link rel="icon" type="image/png" href="/images/buildifylogo2.png">
 </head>
 
 <body class="flex items-center justify-center min-h-screen bg-gray-100">
