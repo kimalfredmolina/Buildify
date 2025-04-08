@@ -28,7 +28,7 @@
     <main class="flex-grow flex items-center justify-center h-screen">
         <div class="text-center">
             <h1 class="text-7xl mr-40 font-medium text-white">Welcome to</h1>
-            <h2 class="text-9xl font-bold text-white">BuildiFy</h2>
+            <h2 class="text-9xl font-bold bg-gradient-to-r from-yellow-400 via-rose-700 to-lime-500 bg-clip-text text-transparent">BuildiFy</h2>
             <p class="mt-6 text-3xl text-white">Create Account now! for free</p>
             <button
                 onclick="window.location.href='/php/Signup.php'"
