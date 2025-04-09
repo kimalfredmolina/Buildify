@@ -12,7 +12,7 @@
 
 <body class="flex flex-col items-center min-h-screen bg-white">
     <nav class="fixed top-0 left-0 right-0 z-50 flex justify-between items-center p-5 bg-slate-800 shadow-md rounded-b-lg">
-        <div class="text-4xl ml-24 font-bold text-white">BuildiFy</div>
+        <div class="text-4xl ml-24 font-bold bg-gradient-to-r from-yellow-400 via-rose-700 to-lime-500 bg-clip-text text-transparent">BuildiFy</div>
         <div class="mr-12 flex space-x-12 text-white">
             <a href="/php/Create.php" class="text-xl font-medium hover:text-blue-600 transition-colors duration-300">Create New Project</a>
             <a href="/Logout.php" class="text-xl font-medium hover:text-blue-600 transition-colors duration-300">Logout</a>
