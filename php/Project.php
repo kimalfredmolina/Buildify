@@ -264,9 +264,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div id="header-fields" class="block-fields">
                     <div class="mb-3">
                         <label class="block text-gray-300 text-sm font-bold mb-2" for="logo_url">
-                            Logo/Image URL
+                            Logo/Image
                         </label>
-                        <input class="w-full bg-gray-700 text-white rounded p-2" id="logo_url" name="logo_url" placeholder="https://example.com/logo.png">
+                        <input class="w-full bg-gray-700 text-white rounded p-2" id="logo_url" name="logo_url" placeholder="PNG/JPG">
                         <small class="text-gray-400">Or upload an image:</small>
                         <input type="file" id="image_upload" class="hidden" accept="image/*">
                         <button type="button" onclick="document.getElementById('image_upload').click()"
