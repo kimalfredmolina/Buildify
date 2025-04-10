@@ -57,14 +57,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             case 'header':
                 $blockData['logo_url'] = $_POST['logo_url'] ?? '';
                 $blockData['menu_items'] = $_POST['menu_items'] ?? 'Home,About Us,Contact Us';
+                $blockData['image_position'] = $_POST['image_position'] ?? 'left';
                 break;
 
             case 'main_content':
-                $blockData['columns'] = $_POST['columns'] ?? '1';
                 $blockData['content_type'] = $_POST['content_type'] ?? 'text';
                 $blockData['image_url'] = $_POST['image_url'] ?? '';
                 $blockData['button_text'] = $_POST['button_text'] ?? '';
-                $blockData['button_url'] = $_POST['button_url'] ?? '';
                 $blockData['button_color'] = $_POST['button_color'] ?? '#007bff';
                 break;
 
@@ -130,6 +129,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         .block-fields.active {
             display: block;
+        }
+
+        .header-image-left {
+            order: 0;
+            margin-right: 20px;
+        }
+
+        .header-image-center {
+            order: 0;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .header-image-right {
+            order: 1;
+            margin-left: 20px;
         }
     </style>
 </head>
@@ -249,9 +264,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div id="header-fields" class="block-fields">
                     <div class="mb-3">
                         <label class="block text-gray-300 text-sm font-bold mb-2" for="logo_url">
-                            Logo URL
+                            Logo/Image URL
                         </label>
-                        <input class="w-full bg-gray-700 text-white rounded p-2" id="logo_url" name="logo_url">
+                        <input class="w-full bg-gray-700 text-white rounded p-2" id="logo_url" name="logo_url" placeholder="https://example.com/logo.png">
+                        <small class="text-gray-400">Or upload an image:</small>
+                        <input type="file" id="image_upload" class="hidden" accept="image/*">
+                        <button type="button" onclick="document.getElementById('image_upload').click()"
+                            class="mt-1 bg-gray-600 text-white px-3 py-1 rounded text-sm">
+                            <i class="fas fa-upload mr-1"></i> Upload Image
+                        </button>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="block text-gray-300 text-sm font-bold mb-2" for="image_position">
+                            Image Position
+                        </label>
+                        <div class="flex space-x-2">
+                            <label class="flex items-center">
+                                <input type="radio" name="image_position" value="left" checked class="mr-1">
+                                <span>Left</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="image_position" value="center" class="mr-1">
+                                <span>Center</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="image_position" value="right" class="mr-1">
+                                <span>Right</span>
+                            </label>
+                        </div>
                     </div>
 
                     <div class="mb-3">
@@ -416,14 +457,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             switch ($blockType) {
                                 case 'header':
                                     echo '<div class="flex items-center">';
+
+                                    // Image/logo with positioning
                                     if (!empty($blockData['logo_url'])) {
-                                        echo '<img src="' . htmlspecialchars($blockData['logo_url']) . '" alt="Logo" style="height:40px;margin-right:20px;">';
+                                        $positionClass = 'mr-4'; // default left position
+                                        if ($blockData['image_position'] === 'center') {
+                                            $positionClass = 'mx-auto';
+                                        } elseif ($blockData['image_position'] === 'right') {
+                                            $positionClass = 'ml-auto order-last';
+                                        }
+
+                                        echo '<img src="' . htmlspecialchars($blockData['logo_url']) . '" alt="Logo" style="height:40px;" class="' . $positionClass . '">';
                                     }
+
+                                    // Title
                                     echo '<h1 style="font-family:' . $blockData['font_style'] . ';color:' . $blockData['font_color'] . ';font-size:' . $blockData['font_size'] . 'px;font-weight:' . $blockData['font_weight'] . ';">';
                                     echo htmlspecialchars($blockData['title'] ?? 'Header');
                                     echo '</h1>';
 
-                                    // Render menu items
+                                    // Menu items
                                     if (!empty($blockData['menu_items'])) {
                                         $items = explode(',', $blockData['menu_items']);
                                         echo '<div style="margin-left:auto;">';
@@ -452,17 +504,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                                     if (!empty($blockData['button_text'])) {
                                         echo '<div class="mt-4">';
-                                        echo '<a href="' . htmlspecialchars($blockData['button_url'] ?? '#') . '" style="';
+                                        echo '<button style="';
                                         echo 'background-color:' . $blockData['button_color'] . ';';
                                         echo 'font-family:' . $blockData['font_style'] . ';';
                                         echo 'color:white;';
                                         echo 'font-size:' . $blockData['font_size'] . 'px;';
                                         echo 'padding:8px 16px;';
                                         echo 'border-radius:4px;';
-                                        echo 'display:inline-block;';
-                                        echo 'text-decoration:none;">';
+                                        echo 'border:none;';
+                                        echo 'cursor:pointer;">';
                                         echo htmlspecialchars($blockData['button_text']);
-                                        echo '</a>';
+                                        echo '</button>';
                                         echo '</div>';
                                     }
                                     break;
@@ -550,6 +602,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         document.addEventListener('DOMContentLoaded', function() {
             showBlockFields('');
+        });
+
+        // Image upload handling
+        document.getElementById('image_upload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    // For a real application, you would upload this to your server
+                    // For now, we'll just show a data URL (in production, upload to server and get URL)
+                    document.getElementById('logo_url').value = event.target.result;
+
+                    // Show preview
+                    const preview = document.getElementById('image-preview');
+                    if (!preview) {
+                        const preview = document.createElement('img');
+                        preview.id = 'image-preview';
+                        preview.src = event.target.result;
+                        preview.style.maxHeight = '100px';
+                        preview.style.marginTop = '10px';
+                        document.getElementById('logo_url').insertAdjacentElement('afterend', preview);
+                    } else {
+                        preview.src = event.target.result;
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
         });
     </script>
 </body>
