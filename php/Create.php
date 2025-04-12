@@ -1,6 +1,6 @@
 <?php
 session_start();
-include '/Buildify/config.php';
+include('../config.php');
 
 if (!isset($_SESSION['user_id'])) {
     header('Location: /php/Signin.php');

@@ -1,6 +1,6 @@
 <?php
 session_start();
-include '/Buildify/config.php';
+include('../config.php');
 
 if (isset($_POST['register'])) {
     $email = mysqli_real_escape_string($conn, $_POST['email']);

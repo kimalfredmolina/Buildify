@@ -22,7 +22,7 @@
     <div class="mt-32 text-center">
         <?php
         session_start();
-        include '/Buildify/config.php';
+        include('../config.php');
 
         if (isset($_SESSION['name'])) {
             $userName = $_SESSION['name'];

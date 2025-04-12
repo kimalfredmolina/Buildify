@@ -1,6 +1,6 @@
 <?php
 session_start();
-include '/Buildify/config.php';
+include('../config.php');
 
 $error = '';
 
