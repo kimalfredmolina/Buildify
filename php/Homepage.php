@@ -40,15 +40,18 @@
 
             if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['delete_id'])) {
                 $deleteId = $_POST['delete_id'];
-
+                
+                $deleteBlocks = $conn->prepare("DELETE FROM project_blocks WHERE project_id = ?");
+                $deleteBlocks->bind_param("i", $deleteId);
+                $deleteBlocks->execute();
+                
                 $stmt = $conn->prepare("DELETE FROM projects WHERE id = ? AND user_id = ?");
                 $stmt->bind_param("ii", $deleteId, $_SESSION['user_id']);
                 $stmt->execute();
-
+                
                 header("Location: " . $_SERVER['PHP_SELF']);
                 exit();
             }
-
             if (isset($_SESSION['user_id'])) {
                 $userId = $_SESSION['user_id'];
 
