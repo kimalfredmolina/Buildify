@@ -304,34 +304,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
 
                 <!-- Main Content Specific Fields -->
-                <div id="main-content-fields" class="block-fields">
-                    <div class="mb-3">
-                        <label class="block text-gray-300 text-sm font-bold mb-2" for="content_type">
-                            Content Type
-                        </label>
-                        <select class="w-full bg-gray-700 text-white rounded p-2" id="content_type" name="content_type">
-                            <option value="text">Text</option>
-                            <option value="image">Image</option>
-                            <option value="text_image">Text + Image</option>
-                        </select>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="block text-gray-300 text-sm font-bold mb-2" for="columns">
-                            Columns
-                        </label>
-                        <select class="w-full bg-gray-700 text-white rounded p-2" id="columns" name="columns">
-                            <option value="1">1 Column</option>
-                            <option value="2">2 Columns</option>
-                            <option value="3">3 Columns</option>
-                        </select>
-                    </div>
+                <div id="main_content-fields" class="block-fields">
 
                     <div class="mb-3">
                         <label class="block text-gray-300 text-sm font-bold mb-2" for="image_url">
-                            Image URL
+                            Image
                         </label>
-                        <input class="w-full bg-gray-700 text-white rounded p-2" id="image_url" name="image_url">
+                        <input class="w-full bg-gray-700 text-white rounded p-2" id="image_url" name="image_url" placeholder="PNG/JPG">
+                        <small class="text-gray-400">Or upload an image:</small>
+                        <input type="file" id="main_content_image_upload" class="hidden" accept="image/*">
+                        <button type="button" onclick="document.getElementById('main_content_image_upload').click()"
+                            class="mt-1 bg-gray-600 text-white px-3 py-1 rounded text-sm">
+                            <i class="fas fa-upload mr-1"></i> Upload Image
+                        </button>
                     </div>
 
                     <div class="mb-3 grid grid-cols-2 gap-4">
@@ -597,24 +582,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 el.classList.remove('active');
             });
             if (blockType) {
-                document.getElementById(blockType + '-fields').classList.add('active');
+                const blockId = blockType.replace('-', '_') + '-fields';
+                const blockElement = document.getElementById(blockId);
+                if (blockElement) {
+                    blockElement.classList.add('active');
+                }
             }
         }
-        document.addEventListener('DOMContentLoaded', function() {
-            showBlockFields('');
-        });
 
-        // Image upload handling
+        // Image upload handling for header
         document.getElementById('image_upload').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(event) {
-                    // For a real application, you would upload this to your server
-                    // For now, we'll just show a data URL (in production, upload to server and get URL)
                     document.getElementById('logo_url').value = event.target.result;
 
-                    // Show preview
                     const preview = document.getElementById('image-preview');
                     if (!preview) {
                         const preview = document.createElement('img');
@@ -623,6 +606,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         preview.style.maxHeight = '100px';
                         preview.style.marginTop = '10px';
                         document.getElementById('logo_url').insertAdjacentElement('afterend', preview);
+                    } else {
+                        preview.src = event.target.result;
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // image upload handling for main content
+        document.getElementById('main_content_image_upload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    document.getElementById('image_url').value = event.target.result;
+                    
+                    const preview = document.getElementById('main-content-image-preview');
+                    if (!preview) {
+                        const preview = document.createElement('img');
+                        preview.id = 'main-content-image-preview';
+                        preview.src = event.target.result;
+                        preview.style.maxHeight = '100px';
+                        preview.style.marginTop = '10px';
+                        document.getElementById('image_url').insertAdjacentElement('afterend', preview);
                     } else {
                         preview.src = event.target.result;
                     }
