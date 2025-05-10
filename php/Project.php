@@ -85,13 +85,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $blockData['copyright_text'] = $_POST['copyright_text'] ?? 'Copyright © ' . date('Y');
                 $blockData['social_links'] = $_POST['social_links'] ?? '';
                 break;
-
-            case 'grade_computation':
-                $blockData['initial_columns'] = $_POST['initial_columns'] ?? 'Midterm,Finals';
-                $blockData['initial_subjects'] = $_POST['initial_subjects'] ?? 'Subject 1,Subject 2,Subject 3';
-                $blockData['button_text'] = $_POST['button_text'] ?? 'Calculate Grades';
-                $blockData['button_color'] = $_POST['button_color'] ?? '#4F46E5';
-                break;
         }
 
         $stmt = $conn->prepare("INSERT INTO project_blocks (project_id, block_type, data) VALUES (?, ?, ?)");
@@ -236,7 +229,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <option value="main_content">Main Content</option>
                         <option value="forms">Forms</option>
                         <option value="footer">Footer</option>
-                        <option value="grade_computation">Grade Computation</option>
                     </select>
                 </div>
 
@@ -503,37 +495,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             Social Links (comma separated)
                         </label>
                         <input class="w-full bg-gray-700 text-white rounded p-2" id="social_links" name="social_links" placeholder="facebook.com, twitter.com, instagram.com">
-                    </div>
-                </div>
-
-                <!-- Grade Computation Specific Fields -->
-                <div id="grade_computation-fields" class="block-fields">
-                    <div class="mb-3">
-                        <label class="block text-gray-300 text-sm font-bold mb-2" for="initial_columns">
-                            Initial Columns
-                        </label>
-                        <input class="w-full bg-gray-700 text-white rounded p-2" id="initial_columns" name="initial_columns" value="Midterm,Finals" placeholder="Comma separated column names">
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="block text-gray-300 text-sm font-bold mb-2" for="initial_subjects">
-                            Initial Subjects
-                        </label>
-                        <input class="w-full bg-gray-700 text-white rounded p-2" id="initial_subjects" name="initial_subjects" value="Subject 1,Subject 2,Subject 3" placeholder="Comma separated subject names">
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="block text-gray-300 text-sm font-bold mb-2" for="grade_button_text">
-                            Calculate Button Text
-                        </label>
-                        <input class="w-full bg-gray-700 text-white rounded p-2" id="grade_button_text" name="button_text" value="Calculate Grades">
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="block text-gray-300 text-sm font-bold mb-2" for="grade_button_color">
-                            Button Color
-                        </label>
-                        <input class="w-full h-10" id="grade_button_color" type="color" name="button_color" value="#4F46E5">
                     </div>
                 </div>
 
@@ -827,118 +788,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     echo '</footer>';
                                     break;
 
-                                case 'grade_computation':
-                                    echo '<h2 style="font-family:' . $blockData['font_style'] . ';color:' . $blockData['font_color'] . ';font-size:' . ($blockData['font_size'] + 2) . 'px;font-weight:bold;margin-bottom:15px;">';
-                                    echo htmlspecialchars($blockData['title'] ?? 'Grade Computation');
-                                    echo '</h2>';
-
-                                    if (!empty($blockData['text'])) {
-                                        echo '<div style="font-family:' . $blockData['font_style'] . ';color:' . $blockData['font_color'] . ';font-size:' . $blockData['font_size'] . ';font-weight:' . $blockData['font_weight'] . ';margin-bottom:15px;">';
-                                        echo nl2br(htmlspecialchars($blockData['text']));
-                                        echo '</div>';
-                                    }
-
-                                    // Parse initial columns and subjects
-                                    $columns = !empty($blockData['initial_columns']) ? explode(',', $blockData['initial_columns']) : ['Midterm', 'Finals'];
-                                    $subjects = !empty($blockData['initial_subjects']) ? explode(',', $blockData['initial_subjects']) : ['Subject 1', 'Subject 2', 'Subject 3'];
-
-                                    echo '<div class="grade-computation-form" style="font-family:' . $blockData['font_style'] . ';">';
-
-                                    // Main container
-                                    echo '<div class="flex flex-wrap gap-4 mb-6">';
-
-                                    // Generate columns
-                                    foreach ($columns as $index => $column) {
-                                        $columnId = 'column-' . $index;
-                                        echo '<div class="flex-1 min-w-[280px] border rounded-lg shadow-sm bg-white overflow-hidden">';
-
-                                        // Column header
-                                        echo '<div class="border-b p-3 bg-gray-50">';
-                                        echo '<div class="flex items-center justify-between">';
-                                        echo '<input type="text" value="' . htmlspecialchars(trim($column)) . '" class="font-semibold text-lg border rounded px-2 py-1 w-full" placeholder="Column Title">';
-                                        echo '<button type="button" class="ml-2 text-red-500 hover:text-red-700" title="Remove Column">';
-                                        echo '<i class="fas fa-trash"></i>';
-                                        echo '</button>';
-                                        echo '</div>';
-                                        echo '</div>';
-
-                                        // Column content - subjects
-                                        echo '<div class="p-4 space-y-3">';
-                                        foreach ($subjects as $subIndex => $subject) {
-                                            $subjectId = 'subject-' . $subIndex;
-                                            echo '<div class="flex items-center gap-2">';
-                                            echo '<div class="flex-1">';
-                                            echo '<input type="text" value="' . htmlspecialchars(trim($subject)) . '" class="w-full border rounded px-2 py-1 text-sm" placeholder="Subject name">';
-                                            echo '</div>';
-                                            echo '<div class="w-20">';
-                                            echo '<input type="text" class="w-full border rounded px-2 py-1 text-sm text-right" placeholder="Grade">';
-                                            echo '</div>';
-                                            echo '<button type="button" class="text-red-500 hover:text-red-700" title="Remove Subject">';
-                                            echo '<i class="fas fa-trash"></i>';
-                                            echo '</button>';
-                                            echo '</div>';
-                                        }
-                                        echo '</div>';
-
-                                        // Column footer
-                                        echo '<div class="border-t p-3 bg-gray-50 flex justify-center">';
-                                        echo '<button type="button" class="w-full px-3 py-1 border rounded text-sm bg-gray-100 hover:bg-gray-200">';
-                                        echo '<i class="fas fa-plus mr-1"></i> Add Subject';
-                                        echo '</button>';
-                                        echo '</div>';
-
-                                        echo '</div>';
-                                    }
-
-                                    // Add column button
-                                    echo '<div class="flex items-center justify-center min-w-[200px] h-[300px]">';
-                                    echo '<button type="button" class="h-16 w-40 border-dashed border-2 rounded-lg hover:bg-gray-50">';
-                                    echo '<i class="fas fa-plus mr-1"></i> Add Column';
-                                    echo '</button>';
-                                    echo '</div>';
-
-                                    echo '</div>'; // End of columns container
-
-                                    // Results section
-                                    $resultsSectionId = "results-section-" . $blockId;
-                                    $columnAveragesId = "column-averages-" . $blockId;
-                                    $semesterAverageId = "semester-average-" . $blockId;
-
-                                    echo '<div class="bg-gray-50 border rounded-lg p-4 mb-6 hidden" id="' . $resultsSectionId . '">';
-                                    echo '<h3 class="text-lg font-semibold mb-2">Results</h3>';
-                                    echo '<div class="grid grid-cols-1 md:grid-cols-2 gap-4">';
-                                    echo '<div>';
-                                    echo '<h4 class="text-sm font-medium mb-2">Column Averages:</h4>';
-                                    echo '<div class="flex flex-wrap gap-2" id="' . $columnAveragesId . '"></div>';
-                                    echo '</div>';
-                                    echo '<div class="flex items-center justify-center md:justify-end">';
-                                    echo '<div class="text-center">';
-                                    echo '<div class="text-sm font-medium">Semester Average</div>';
-                                    echo '<div class="text-3xl font-bold" id="' . $semesterAverageId . '">0.00</div>';
-                                    echo '</div>';
-                                    echo '</div>';
-                                    echo '</div>';
-                                    echo '</div>';
-
-                                    // Calculate button
-                                    echo '<div class="flex justify-center">';
-                                    echo '<button type="button" style="background-color:' . $blockData['button_color'] . ';color:white;padding:10px 20px;border-radius:4px;font-weight:bold;" class="w-full max-w-xs">';
-                                    echo '<i class="fas fa-calculator mr-2"></i> ' . htmlspecialchars($blockData['button_text'] ?? 'Calculate Grades');
-                                    echo '</button>';
-                                    echo '</div>';
-
-                                    echo '</div>'; // End of grade-computation-form
-
-                                    // Add JavaScript for interactivity
-                                    echo '<script>
-                                        document.addEventListener("DOMContentLoaded", function() {
-                                            // This is just a placeholder. In a real implementation, you would add JavaScript
-                                            // to handle adding/removing columns and subjects, and calculating grades.
-                                            console.log("Grade computation form loaded");
-                                        });
-                                        </script>';
-                                    break;
-
                                 default:
                                     echo '<h3 style="font-family:' . $blockData['font_style'] . ';color:' . $blockData['font_color'] . ';font-size:' . ($blockData['font_size'] + 2) . 'px;font-weight:bold;margin-bottom:10px;">';
                                     echo ucfirst($blockType);
@@ -1016,142 +865,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
                 };
                 reader.readAsDataURL(file);
-            }
-        });
-        // Grade computation form interactivity
-        document.addEventListener('click', function(e) {
-            // Check if we're inside a grade computation block
-            const gradeForm = e.target.closest('.grade-computation-form');
-            if (!gradeForm) return;
-
-            // Add column button
-            if (e.target.closest('button') && e.target.closest('button').textContent.includes('Add Column')) {
-                const columnsContainer = gradeForm.querySelector('.flex.flex-wrap.gap-4');
-                const addColumnBtn = e.target.closest('div');
-
-                const newColumn = document.createElement('div');
-                newColumn.className = 'flex-1 min-w-[280px] border rounded-lg shadow-sm bg-white overflow-hidden';
-                newColumn.innerHTML = `
-                    <div class="border-b p-3 bg-gray-50">
-                        <div class="flex items-center justify-between">
-                            <input type="text" value="New Column" class="font-semibold text-lg border rounded px-2 py-1 w-full" placeholder="Column Title">
-                            <button type="button" class="ml-2 text-red-500 hover:text-red-700" title="Remove Column">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="p-4 space-y-3">
-                        <div class="flex items-center gap-2">
-                            <div class="flex-1">
-                                <input type="text" value="Subject 1" class="w-full border rounded px-2 py-1 text-sm" placeholder="Subject name">
-                            </div>
-                            <div class="w-20">
-                                <input type="text" class="w-full border rounded px-2 py-1 text-sm text-right" placeholder="Grade">
-                            </div>
-                            <button type="button" class="text-red-500 hover:text-red-700" title="Remove Subject">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="border-t p-3 bg-gray-50 flex justify-center">
-                        <button type="button" class="w-full px-3 py-1 border rounded text-sm bg-gray-100 hover:bg-gray-200">
-                            <i class="fas fa-plus mr-1"></i> Add Subject
-                        </button>
-                    </div>
-                `;
-
-                columnsContainer.insertBefore(newColumn, addColumnBtn);
-            }
-
-            // Remove column button
-            if (e.target.closest('button') && e.target.closest('button').title === 'Remove Column') {
-                const column = e.target.closest('.flex-1');
-                column.remove();
-            }
-
-            // Add subject button
-            if (e.target.closest('button') && e.target.closest('button').textContent.includes('Add Subject')) {
-                const subjectsContainer = e.target.closest('.flex-1').querySelector('.p-4.space-y-3');
-                const subjectCount = subjectsContainer.querySelectorAll('.flex.items-center.gap-2').length + 1;
-
-                const newSubject = document.createElement('div');
-                newSubject.className = 'flex items-center gap-2';
-                newSubject.innerHTML = `
-                    <div class="flex-1">
-                        <input type="text" value="Subject ${subjectCount}" class="w-full border rounded px-2 py-1 text-sm" placeholder="Subject name">
-                    </div>
-                    <div class="w-20">
-                        <input type="text" class="w-full border rounded px-2 py-1 text-sm text-right" placeholder="Grade">
-                    </div>
-                    <button type="button" class="text-red-500 hover:text-red-700" title="Remove Subject">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                `;
-
-                subjectsContainer.appendChild(newSubject);
-            }
-
-            // Remove subject button
-            if (e.target.closest('button') && e.target.closest('button').title === 'Remove Subject') {
-                const subject = e.target.closest('.flex.items-center.gap-2');
-                const subjectsContainer = subject.parentElement;
-
-                // Only remove if there's more than one subject
-                if (subjectsContainer.querySelectorAll('.flex.items-center.gap-2').length > 1) {
-                    subject.remove();
-                }
-            }
-
-            // Calculate button
-            if (e.target.closest('button') && e.target.closest('button').textContent.includes('Calculate')) {
-                const columns = gradeForm.querySelectorAll('.flex-1.min-w-\\[280px\\]');
-                const resultsSection = gradeForm.querySelector('#results-section');
-                const columnAveragesContainer = gradeForm.querySelector('#column-averages');
-                const semesterAverageElement = gradeForm.querySelector('#semester-average');
-
-                // Show results section
-                resultsSection.classList.remove('hidden');
-
-                // Clear previous results
-                columnAveragesContainer.innerHTML = '';
-
-                const columnAverages = [];
-
-                // Calculate average for each column
-                columns.forEach(column => {
-                    const columnTitle = column.querySelector('input.font-semibold').value;
-                    const gradeInputs = column.querySelectorAll('.w-20 input');
-
-                    let sum = 0;
-                    let count = 0;
-
-                    gradeInputs.forEach(input => {
-                        const grade = parseFloat(input.value);
-                        if (!isNaN(grade)) {
-                            sum += grade;
-                            count++;
-                        }
-                    });
-
-                    const average = count > 0 ? sum / count : 0;
-                    columnAverages.push(average);
-
-                    // Add to results
-                    if (average > 0) {
-                        const badge = document.createElement('div');
-                        badge.className = 'px-2 py-1 rounded border bg-white text-sm';
-                        badge.textContent = `${columnTitle}: ${average.toFixed(2)}`;
-                        columnAveragesContainer.appendChild(badge);
-                    }
-                });
-
-                // Calculate semester average
-                const validAverages = columnAverages.filter(avg => avg > 0);
-                const semesterAverage = validAverages.length > 0 ?
-                    validAverages.reduce((sum, avg) => sum + avg, 0) / validAverages.length :
-                    0;
-
-                semesterAverageElement.textContent = semesterAverage.toFixed(2);
             }
         });
 
