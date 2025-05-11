@@ -201,6 +201,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .animate-fade-in {
             animation: fadeIn 0.5s ease-out forwards;
         }
+
+        #preview-modal {
+            backdrop-filter: blur(5px);
+        }
+
+        #preview-container {
+            min-height: 100%;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+
+        #preview-container .block-container {
+            margin: 0;
+            border-radius: 0;
+        }
+
+        /* Preview device-specific styles */
+        @media (max-width: 375px) {
+            #preview-container {
+                width: 375px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            #preview-container {
+                width: 768px;
+            }
+        }
     </style>
 </head>
 
@@ -521,6 +548,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         Save
                     </button>
                 </form>
+
+                <button
+                    onclick="previewWebsite()"
+                    class="bg-green-500 text-white px-6 py-2 rounded hover:bg-green-600 flex items-center">
+                    <i class="fas fa-eye mr-2"></i> Preview Website
+                </button>
             </div>
 
             <!-- Blocks Container -->
@@ -806,6 +839,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     </div>
 
+    <!-- Preview Modal -->
+    <div id="preview-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+        <div class="fixed inset-4 bg-white rounded-lg flex flex-col">
+            <div class="flex justify-between items-center p-4 border-b">
+                <div class="flex items-center space-x-4">
+                    <h3 class="text-xl font-bold">Website Preview</h3>
+                    <div class="flex space-x-2">
+                        <button onclick="setPreviewWidth('mobile')" class="p-2 rounded hover:bg-gray-100">
+                            <i class="fas fa-mobile-alt text-gray-600"></i>
+                        </button>
+                        <button onclick="setPreviewWidth('tablet')" class="p-2 rounded hover:bg-gray-100">
+                            <i class="fas fa-tablet-alt text-gray-600"></i>
+                        </button>
+                        <button onclick="setPreviewWidth('desktop')" class="p-2 rounded hover:bg-gray-100">
+                            <i class="fas fa-desktop text-gray-600"></i>
+                        </button>
+                    </div>
+                </div>
+                <button onclick="closePreview()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <div class="flex-1 overflow-auto p-4">
+                <div id="preview-container" class="mx-auto transition-all duration-300 bg-white">
+                    <div id="preview-content"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         function showBlockFields(blockType) {
             document.querySelectorAll('.block-fields').forEach(el => {
@@ -877,6 +940,61 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     document.getElementById('background_image').value = event.target.result;
                 };
                 reader.readAsDataURL(file);
+            }
+        });
+
+        //Preview function
+        function previewWebsite() {
+            const modal = document.getElementById('preview-modal');
+            const previewContent = document.getElementById('preview-content');
+            const blocksContainer = document.getElementById('blocks-container');
+
+            const previewHtml = blocksContainer.cloneNode(true);
+
+            previewHtml.querySelectorAll('.block-actions').forEach(el => el.remove());
+
+            modal.classList.remove('hidden');
+            previewContent.innerHTML = '';
+            previewContent.appendChild(previewHtml);
+
+            setPreviewWidth('desktop');
+
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closePreview() {
+            const modal = document.getElementById('preview-modal');
+            modal.classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        function setPreviewWidth(device) {
+            const container = document.getElementById('preview-container');
+            const widths = {
+                mobile: '375px',
+                tablet: '768px',
+                desktop: '100%'
+            };
+
+            container.style.width = widths[device];
+
+            document.querySelectorAll('#preview-modal .fa-mobile-alt, #preview-modal .fa-tablet-alt, #preview-modal .fa-desktop')
+                .forEach(icon => icon.parentElement.classList.remove('bg-gray-100'));
+
+            document.querySelector(`#preview-modal .fa-${device === 'mobile' ? 'mobile-alt' : 
+                                                   device === 'tablet' ? 'tablet-alt' : 
+                                                   'desktop'}`).parentElement.classList.add('bg-gray-100');
+        }
+        // Close modal when clicking outside of it
+        document.getElementById('preview-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closePreview();
+            }
+        });
+        // Close modal when pressing X key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closePreview();
             }
         });
     </script>
