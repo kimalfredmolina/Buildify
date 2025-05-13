@@ -228,6 +228,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 width: 768px;
             }
         }
+
+        .block-container {
+            position: relative;
+            z-index: 1;
+            margin-bottom: 1rem;
+        }
+
+        .block-container:hover {
+            z-index: 2;
+        }
+
+        .block-actions {
+            z-index: 3;
+        }
+
+        .block-edit-form {
+            position: relative;
+            z-index: 2;
+            margin-top: 1rem;
+        }
     </style>
 </head>
 
@@ -570,266 +590,274 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $blockId = $block['id'];
                         $blockType = $block['block_type'];
                 ?>
-                        <div class="block-container relative p-4" style="
+                        <div class="block-container relative p-4 mb-4" 
+                            data-block-id="<?php echo $blockId; ?>"
+                            data-block-data='<?php echo json_encode($blockData); ?>'
+                            style="
                                 background-color: <?php echo $blockData['background_color']; ?>;
                                 padding: <?php echo $blockData['padding']; ?>px;
                                 margin: <?php echo $blockData['margin']; ?>px;
                                 border-radius: <?php echo $blockData['border_radius']; ?>px;
+                                position: relative;
+                                z-index: 1;
                             ">
-                            <div class="block-actions absolute right-4 top-4 space-x-2">
-                                <button class="edit-block bg-blue-500 text-white p-1 rounded" data-block-id="<?php echo $blockId; ?>">
+                            <div class="block-content" data-block-type="<?php echo $blockType; ?>">
+                                <?php
+                                // Render block based on type
+                                switch ($blockType) {
+                                    case 'header':
+                                        echo '<div class="flex items-center justify-between p-4 transition-all duration-300 hover:shadow-lg">';
+
+                                        // Logo/Image with enhanced positioning and animation
+                                        if (!empty($blockData['logo_url'])) {
+                                            $positionClass = 'transform hover:scale-105 transition-transform duration-300 ';
+                                            $positionClass .= $blockData['image_position'] === 'center' ? 'mx-auto' : ($blockData['image_position'] === 'right' ? 'ml-auto order-last' : 'mr-4');
+
+                                            echo '<img src="' . htmlspecialchars($blockData['logo_url']) . '" 
+                                                      alt="Logo" 
+                                                      class="h-12 ' . $positionClass . '">';
+                                        }
+
+                                        // Title with enhanced typography
+                                        echo '<h1 class="text-3xl font-bold tracking-tight transition-colors duration-300 hover:text-indigo-600" 
+                                                  style="font-family:' . $blockData['font_style'] . ';
+                                                         color:' . $blockData['font_color'] . ';
+                                                         font-size:' . $blockData['font_size'] . 'px;
+                                                         font-weight:' . $blockData['font_weight'] . ';">';
+                                        echo htmlspecialchars($blockData['title'] ?? 'Header');
+                                        echo '</h1>';
+
+                                        // Modern navigation menu
+                                        if (!empty($blockData['menu_items'])) {
+                                            $items = explode(',', $blockData['menu_items']);
+                                            echo '<nav class="hidden md:flex space-x-6">';
+                                            foreach ($items as $item) {
+                                                echo '<a href="#" class="relative group px-2 py-1 transition-all duration-300 hover:text-indigo-600" 
+                                                          style="font-family:' . $blockData['font_style'] . ';
+                                                                 color:' . $blockData['font_color'] . ';
+                                                                 font-size:' . ($blockData['font_size'] - 2) . 'px;">
+                                                          <span class="relative z-10">' . htmlspecialchars(trim($item)) . '</span>
+                                                          <span class="absolute bottom-0 left-0 w-full h-0.5 bg-indigo-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></span>
+                                                          </a>';
+                                            }
+                                            echo '</nav>';
+
+                                            // Mobile menu button
+                                            echo '<button class="md:hidden p-2 rounded-lg hover:bg-gray-100">
+                                                      <i class="fas fa-bars text-xl"></i>
+                                                      </button>';
+                                        }
+                                        echo '</div>';
+                                        break;
+
+                                    case 'main_content':
+                                        echo '<div class="p-6 transition-all duration-300 hover:shadow-xl rounded-xl relative overflow-hidden">';
+
+                                        // Background Image with Opacity
+                                        if (!empty($blockData['background_image'])) {
+                                            echo '<div class="absolute inset-0 z-0" style="
+                                                background-image: url(\'' . htmlspecialchars($blockData['background_image']) . '\');
+                                                background-size: cover;
+                                                background-position: center;
+                                                opacity: ' . ($blockData['background_opacity'] ?? '0.5') . ';">
+                                            </div>';
+                                        }
+
+                                        // Content Container with position classes
+                                        $contentPosition = $blockData['content_position'] ?? 'left';
+                                        $positionClasses = [
+                                            'left' => 'text-left',
+                                            'center' => 'text-center mx-auto',
+                                            'right' => 'text-right ml-auto'
+                                        ];
+
+                                        echo '<div class="relative z-10 ' . $positionClasses[$contentPosition] . '" style="max-width: 800px;">';
+
+                                        // Title
+                                        echo '<h2 class="text-4xl font-bold mb-6 relative inline-block" 
+                                            style="font-family:' . $blockData['font_style'] . ';
+                                            color:' . $blockData['font_color'] . ';">
+                                            <span class="relative z-10">' . htmlspecialchars($blockData['title'] ?? 'Main Content') . '</span>
+                                            <span class="absolute bottom-0 left-0 w-full h-2 bg-indigo-200 -z-10"></span>
+                                        </h2>';
+
+                                        // Content Text
+                                        echo '<div class="prose prose-lg max-w-none mb-8" 
+                                            style="font-family:' . $blockData['font_style'] . ';
+                                            color:' . $blockData['font_color'] . ';
+                                            font-size:' . $blockData['font_size'] . 'px;
+                                            font-weight:' . $blockData['font_weight'] . ';">';
+                                        echo nl2br(htmlspecialchars($blockData['text'] ?? ''));
+                                        echo '</div>';
+
+                                        // Content Image
+                                        if (!empty($blockData['image_url'])) {
+                                            echo '<div class="mt-8 rounded-xl overflow-hidden shadow-lg transform hover:scale-[1.02] transition-transform duration-300">
+                                                <img src="' . htmlspecialchars($blockData['image_url']) . '" 
+                                                    alt="Content Image" 
+                                                    class="w-full h-auto object-cover">
+                                            </div>';
+                                        }
+
+                                        // Button with position control
+                                        if (!empty($blockData['button_text'])) {
+                                            $buttonPosition = $blockData['button_position'] ?? 'left';
+                                            $buttonPositionClasses = [
+                                                'left' => 'text-left',
+                                                'center' => 'text-center',
+                                                'right' => 'text-right'
+                                            ];
+
+                                            echo '<div class="mt-8 ' . $buttonPositionClasses[$buttonPosition] . '">';
+                                            echo '<a href="' . htmlspecialchars($blockData['button_url'] ?? '#') . '"
+                                                class="group relative inline-flex items-center px-6 py-3 rounded-lg overflow-hidden transition-all duration-300" 
+                                                style="background-color:' . ($blockData['button_color'] ?? '#4F46E5') . ';">
+                                                <span class="relative z-10 text-white font-medium">' .
+                                                htmlspecialchars($blockData['button_text']) .
+                                                '</span>
+                                                <div class="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+                                            </a>';
+                                            echo '</div>';
+                                        }
+
+                                        echo '</div>'; // Close content container
+                                        echo '</div>'; // Close main container
+                                        break;
+
+                                    case 'forms':
+                                        echo '<div class="max-w-2xl mx-auto p-6 bg-white rounded-xl shadow-lg transition-shadow duration-300 hover:shadow-xl">';
+                                        echo '<h2 class="text-3xl font-bold mb-8 text-center" 
+                                                  style="font-family:' . $blockData['font_style'] . ';
+                                                         color:' . $blockData['font_color'] . ';">' .
+                                            htmlspecialchars($blockData['title'] ?? 'Contact Us') .
+                                            '</h2>';
+
+                                        if (!empty($blockData['form_fields'])) {
+                                            $fields = explode(',', $blockData['form_fields']);
+                                            echo '<form class="space-y-6" style="font-family:' . $blockData['font_style'] . ';">';
+                                            foreach ($fields as $field) {
+                                                $field = trim($field);
+                                                echo '<div class="relative">
+                                                          <label class="block text-sm font-medium mb-2 transition-colors duration-300 hover:text-indigo-600">' .
+                                                    ucfirst($field) .
+                                                    '</label>
+                                                          <input type="' . ($field === 'email' ? 'email' : 'text') . '" 
+                                                                 name="' . $field . '" 
+                                                                 class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all duration-300" 
+                                                                 placeholder="Enter your ' . strtolower($field) . '">
+                                                          </div>';
+                                            }
+                                            echo '<button type="submit" 
+                                                      class="w-full py-3 px-6 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transform hover:-translate-y-0.5 transition-all duration-300">
+                                                      Submit
+                                                      </button>';
+                                            echo '</form>';
+                                        }
+                                        echo '</div>';
+                                        break;
+
+                                    case 'footer':
+                                        echo '<footer class="bg-gradient-to-r from-slate-800 to-slate-900 text-white py-12">';
+                                        echo '<div class="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-12">';
+
+                                        // Company Info Section
+                                        echo '<div class="space-y-4">';
+                                        echo '<h3 class="text-xl font-bold relative inline-block pb-2 after:content-[\'\'] after:absolute after:bottom-0 after:left-0 after:h-1 after:w-1/3 after:bg-blue-500">';
+                                        echo htmlspecialchars($blockData['title'] ?? 'BuildiFy');
+                                        echo '</h3>';
+                                        echo '<p class="text-gray-300" style="font-family:' . $blockData['font_style'] . ';font-size:' . $blockData['font_size'] . 'px;">';
+                                        echo nl2br(htmlspecialchars($blockData['text'] ?? ''));
+                                        echo '</p>';
+                                        echo '</div>';
+
+                                        // Quick Links
+                                        echo '<div class="space-y-4">';
+                                        echo '<h3 class="text-xl font-bold">Quick Links</h3>';
+                                        echo '<ul class="space-y-2">';
+                                        echo '<li><a href="#" class="text-gray-300 hover:text-white transition-colors duration-300">Home</a></li>';
+                                        echo '<li><a href="#" class="text-gray-300 hover:text-white transition-colors duration-300">About</a></li>';
+                                        echo '<li><a href="#" class="text-gray-300 hover:text-white transition-colors duration-300">Services</a></li>';
+                                        echo '<li><a href="#" class="text-gray-300 hover:text-white transition-colors duration-300">Contact</a></li>';
+                                        echo '</ul>';
+                                        echo '</div>';
+
+                                        // Contact Info
+                                        echo '<div class="space-y-4">';
+                                        echo '<h3 class="text-xl font-bold">Contact Us</h3>';
+                                        echo '<div class="space-y-2 text-gray-300">';
+                                        echo '<p class="flex items-center"><i class="fas fa-envelope mr-2"></i> info@buildify.com</p>';
+                                        echo '<p class="flex items-center"><i class="fas fa-phone mr-2"></i> +1 234 567 890</p>';
+                                        echo '<p class="flex items-center"><i class="fas fa-map-marker-alt mr-2"></i> City, Country</p>';
+                                        echo '</div>';
+                                        echo '</div>';
+
+                                        // Social Links & Newsletter
+                                        echo '<div class="space-y-4">';
+                                        echo '<h3 class="text-xl font-bold">Connect With Us</h3>';
+
+                                        // Social Media Links
+                                        if (!empty($blockData['social_links'])) {
+                                            echo '<div class="flex space-x-4">';
+                                            $links = explode(',', $blockData['social_links']);
+                                            foreach ($links as $link) {
+                                                $link = trim($link);
+                                                $platform = strtolower(parse_url($link, PHP_URL_HOST));
+                                                $platform = str_replace('.com', '', $platform);
+                                                echo '<a href="' . htmlspecialchars($link) . '" target="_blank" 
+                                                        class="text-gray-300 hover:text-white transition-colors duration-300 transform hover:scale-110">
+                                                        <i class="fab fa-' . $platform . ' text-xl"></i>
+                                                      </a>';
+                                            }
+                                            echo '</div>';
+                                        }
+
+                                        // Newsletter Form
+                                        echo '<div class="mt-6">';
+                                        echo '<form class="flex flex-col space-y-2">';
+                                        echo '<input type="email" placeholder="Enter your email" 
+                                                class="bg-gray-700 text-white rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">';
+                                        echo '<button type="submit" 
+                                                class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors duration-300">
+                                                Subscribe
+                                              </button>';
+                                        echo '</form>';
+                                        echo '</div>';
+                                        echo '</div>';
+
+                                        // Bottom Bar
+                                        echo '<div class="col-span-full mt-8 pt-8 border-t border-gray-700 text-center text-gray-400">';
+                                        echo '<p style="font-family:' . $blockData['font_style'] . ';">' .
+                                            htmlspecialchars($blockData['copyright_text'] ?? 'Copyright © ' . date('Y') . ' BuildiFy. All rights reserved.') .
+                                            '</p>';
+                                        echo '</div>';
+
+                                        echo '</div>';
+                                        echo '</footer>';
+                                        break;
+
+                                    default:
+                                        echo '<h3 style="font-family:' . $blockData['font_style'] . ';color:' . $blockData['font_color'] . ';font-size:' . ($blockData['font_size'] + 2) . 'px;font-weight:bold;margin-bottom:10px;">';
+                                        echo ucfirst($blockType);
+                                        echo '</h3>';
+                                        echo '<div style="font-family:' . $blockData['font_style'] . ';color:' . $blockData['font_color'] . ';font-size:' . $blockData['font_size'] . 'px;font-weight:' . $blockData['font_weight'] . ';">';
+                                        echo nl2br(htmlspecialchars($blockData['text'] ?? ''));
+                                        echo '</div>';
+                                }
+                                ?>
+                            </div>
+                            <div class="block-actions absolute right-4 top-4 space-x-2 z-10">
+                                <button onclick="editBlock(<?php echo $blockId; ?>)" 
+                                    class="edit-block bg-blue-500 text-white p-1 rounded hover:bg-blue-600">
                                     <i class="fas fa-edit"></i>
                                 </button>
                                 <form method="POST" class="inline">
                                     <input type="hidden" name="block_id" value="<?php echo $blockId; ?>">
-                                    <button type="submit" name="delete_block" class="bg-red-500 text-white p-1 rounded">
+                                    <button type="submit" name="delete_block" 
+                                        class="bg-red-500 text-white p-1 rounded hover:bg-red-600">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </form>
                             </div>
-
-                            <?php
-                            // Render block based on type
-                            switch ($blockType) {
-                                case 'header':
-                                    echo '<div class="flex items-center justify-between p-4 transition-all duration-300 hover:shadow-lg">';
-
-                                    // Logo/Image with enhanced positioning and animation
-                                    if (!empty($blockData['logo_url'])) {
-                                        $positionClass = 'transform hover:scale-105 transition-transform duration-300 ';
-                                        $positionClass .= $blockData['image_position'] === 'center' ? 'mx-auto' : ($blockData['image_position'] === 'right' ? 'ml-auto order-last' : 'mr-4');
-
-                                        echo '<img src="' . htmlspecialchars($blockData['logo_url']) . '" 
-                                                  alt="Logo" 
-                                                  class="h-12 ' . $positionClass . '">';
-                                    }
-
-                                    // Title with enhanced typography
-                                    echo '<h1 class="text-3xl font-bold tracking-tight transition-colors duration-300 hover:text-indigo-600" 
-                                              style="font-family:' . $blockData['font_style'] . ';
-                                                     color:' . $blockData['font_color'] . ';
-                                                     font-size:' . $blockData['font_size'] . 'px;
-                                                     font-weight:' . $blockData['font_weight'] . ';">';
-                                    echo htmlspecialchars($blockData['title'] ?? 'Header');
-                                    echo '</h1>';
-
-                                    // Modern navigation menu
-                                    if (!empty($blockData['menu_items'])) {
-                                        $items = explode(',', $blockData['menu_items']);
-                                        echo '<nav class="hidden md:flex space-x-6">';
-                                        foreach ($items as $item) {
-                                            echo '<a href="#" class="relative group px-2 py-1 transition-all duration-300 hover:text-indigo-600" 
-                                                      style="font-family:' . $blockData['font_style'] . ';
-                                                             color:' . $blockData['font_color'] . ';
-                                                             font-size:' . ($blockData['font_size'] - 2) . 'px;">
-                                                      <span class="relative z-10">' . htmlspecialchars(trim($item)) . '</span>
-                                                      <span class="absolute bottom-0 left-0 w-full h-0.5 bg-indigo-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></span>
-                                                      </a>';
-                                        }
-                                        echo '</nav>';
-
-                                        // Mobile menu button
-                                        echo '<button class="md:hidden p-2 rounded-lg hover:bg-gray-100">
-                                                  <i class="fas fa-bars text-xl"></i>
-                                                  </button>';
-                                    }
-                                    echo '</div>';
-                                    break;
-
-                                case 'main_content':
-                                    echo '<div class="p-6 transition-all duration-300 hover:shadow-xl rounded-xl relative overflow-hidden">';
-
-                                    // Background Image with Opacity
-                                    if (!empty($blockData['background_image'])) {
-                                        echo '<div class="absolute inset-0 z-0" style="
-                                            background-image: url(\'' . htmlspecialchars($blockData['background_image']) . '\');
-                                            background-size: cover;
-                                            background-position: center;
-                                            opacity: ' . ($blockData['background_opacity'] ?? '0.5') . ';">
-                                        </div>';
-                                    }
-
-                                    // Content Container with position classes
-                                    $contentPosition = $blockData['content_position'] ?? 'left';
-                                    $positionClasses = [
-                                        'left' => 'text-left',
-                                        'center' => 'text-center mx-auto',
-                                        'right' => 'text-right ml-auto'
-                                    ];
-
-                                    echo '<div class="relative z-10 ' . $positionClasses[$contentPosition] . '" style="max-width: 800px;">';
-
-                                    // Title
-                                    echo '<h2 class="text-4xl font-bold mb-6 relative inline-block" 
-                                        style="font-family:' . $blockData['font_style'] . ';
-                                        color:' . $blockData['font_color'] . ';">
-                                        <span class="relative z-10">' . htmlspecialchars($blockData['title'] ?? 'Main Content') . '</span>
-                                        <span class="absolute bottom-0 left-0 w-full h-2 bg-indigo-200 -z-10"></span>
-                                    </h2>';
-
-                                    // Content Text
-                                    echo '<div class="prose prose-lg max-w-none mb-8" 
-                                        style="font-family:' . $blockData['font_style'] . ';
-                                        color:' . $blockData['font_color'] . ';
-                                        font-size:' . $blockData['font_size'] . 'px;
-                                        font-weight:' . $blockData['font_weight'] . ';">';
-                                    echo nl2br(htmlspecialchars($blockData['text'] ?? ''));
-                                    echo '</div>';
-
-                                    // Content Image
-                                    if (!empty($blockData['image_url'])) {
-                                        echo '<div class="mt-8 rounded-xl overflow-hidden shadow-lg transform hover:scale-[1.02] transition-transform duration-300">
-                                            <img src="' . htmlspecialchars($blockData['image_url']) . '" 
-                                                alt="Content Image" 
-                                                class="w-full h-auto object-cover">
-                                        </div>';
-                                    }
-
-                                    // Button with position control
-                                    if (!empty($blockData['button_text'])) {
-                                        $buttonPosition = $blockData['button_position'] ?? 'left';
-                                        $buttonPositionClasses = [
-                                            'left' => 'text-left',
-                                            'center' => 'text-center',
-                                            'right' => 'text-right'
-                                        ];
-
-                                        echo '<div class="mt-8 ' . $buttonPositionClasses[$buttonPosition] . '">';
-                                        echo '<a href="' . htmlspecialchars($blockData['button_url'] ?? '#') . '"
-                                            class="group relative inline-flex items-center px-6 py-3 rounded-lg overflow-hidden transition-all duration-300" 
-                                            style="background-color:' . ($blockData['button_color'] ?? '#4F46E5') . ';">
-                                            <span class="relative z-10 text-white font-medium">' .
-                                            htmlspecialchars($blockData['button_text']) .
-                                            '</span>
-                                            <div class="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
-                                        </a>';
-                                        echo '</div>';
-                                    }
-
-                                    echo '</div>'; // Close content container
-                                    echo '</div>'; // Close main container
-                                    break;
-
-                                case 'forms':
-                                    echo '<div class="max-w-2xl mx-auto p-6 bg-white rounded-xl shadow-lg transition-shadow duration-300 hover:shadow-xl">';
-                                    echo '<h2 class="text-3xl font-bold mb-8 text-center" 
-                                              style="font-family:' . $blockData['font_style'] . ';
-                                                     color:' . $blockData['font_color'] . ';">' .
-                                        htmlspecialchars($blockData['title'] ?? 'Contact Us') .
-                                        '</h2>';
-
-                                    if (!empty($blockData['form_fields'])) {
-                                        $fields = explode(',', $blockData['form_fields']);
-                                        echo '<form class="space-y-6" style="font-family:' . $blockData['font_style'] . ';">';
-                                        foreach ($fields as $field) {
-                                            $field = trim($field);
-                                            echo '<div class="relative">
-                                                      <label class="block text-sm font-medium mb-2 transition-colors duration-300 hover:text-indigo-600">' .
-                                                ucfirst($field) .
-                                                '</label>
-                                                      <input type="' . ($field === 'email' ? 'email' : 'text') . '" 
-                                                             name="' . $field . '" 
-                                                             class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all duration-300" 
-                                                             placeholder="Enter your ' . strtolower($field) . '">
-                                                      </div>';
-                                        }
-                                        echo '<button type="submit" 
-                                                  class="w-full py-3 px-6 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transform hover:-translate-y-0.5 transition-all duration-300">
-                                                  Submit
-                                                  </button>';
-                                        echo '</form>';
-                                    }
-                                    echo '</div>';
-                                    break;
-
-                                case 'footer':
-                                    echo '<footer class="bg-gradient-to-r from-slate-800 to-slate-900 text-white py-12">';
-                                    echo '<div class="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-12">';
-
-                                    // Company Info Section
-                                    echo '<div class="space-y-4">';
-                                    echo '<h3 class="text-xl font-bold relative inline-block pb-2 after:content-[\'\'] after:absolute after:bottom-0 after:left-0 after:h-1 after:w-1/3 after:bg-blue-500">';
-                                    echo htmlspecialchars($blockData['title'] ?? 'BuildiFy');
-                                    echo '</h3>';
-                                    echo '<p class="text-gray-300" style="font-family:' . $blockData['font_style'] . ';font-size:' . $blockData['font_size'] . 'px;">';
-                                    echo nl2br(htmlspecialchars($blockData['text'] ?? ''));
-                                    echo '</p>';
-                                    echo '</div>';
-
-                                    // Quick Links
-                                    echo '<div class="space-y-4">';
-                                    echo '<h3 class="text-xl font-bold">Quick Links</h3>';
-                                    echo '<ul class="space-y-2">';
-                                    echo '<li><a href="#" class="text-gray-300 hover:text-white transition-colors duration-300">Home</a></li>';
-                                    echo '<li><a href="#" class="text-gray-300 hover:text-white transition-colors duration-300">About</a></li>';
-                                    echo '<li><a href="#" class="text-gray-300 hover:text-white transition-colors duration-300">Services</a></li>';
-                                    echo '<li><a href="#" class="text-gray-300 hover:text-white transition-colors duration-300">Contact</a></li>';
-                                    echo '</ul>';
-                                    echo '</div>';
-
-                                    // Contact Info
-                                    echo '<div class="space-y-4">';
-                                    echo '<h3 class="text-xl font-bold">Contact Us</h3>';
-                                    echo '<div class="space-y-2 text-gray-300">';
-                                    echo '<p class="flex items-center"><i class="fas fa-envelope mr-2"></i> info@buildify.com</p>';
-                                    echo '<p class="flex items-center"><i class="fas fa-phone mr-2"></i> +1 234 567 890</p>';
-                                    echo '<p class="flex items-center"><i class="fas fa-map-marker-alt mr-2"></i> City, Country</p>';
-                                    echo '</div>';
-                                    echo '</div>';
-
-                                    // Social Links & Newsletter
-                                    echo '<div class="space-y-4">';
-                                    echo '<h3 class="text-xl font-bold">Connect With Us</h3>';
-
-                                    // Social Media Links
-                                    if (!empty($blockData['social_links'])) {
-                                        echo '<div class="flex space-x-4">';
-                                        $links = explode(',', $blockData['social_links']);
-                                        foreach ($links as $link) {
-                                            $link = trim($link);
-                                            $platform = strtolower(parse_url($link, PHP_URL_HOST));
-                                            $platform = str_replace('.com', '', $platform);
-                                            echo '<a href="' . htmlspecialchars($link) . '" target="_blank" 
-                                                    class="text-gray-300 hover:text-white transition-colors duration-300 transform hover:scale-110">
-                                                    <i class="fab fa-' . $platform . ' text-xl"></i>
-                                                  </a>';
-                                        }
-                                        echo '</div>';
-                                    }
-
-                                    // Newsletter Form
-                                    echo '<div class="mt-6">';
-                                    echo '<form class="flex flex-col space-y-2">';
-                                    echo '<input type="email" placeholder="Enter your email" 
-                                            class="bg-gray-700 text-white rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">';
-                                    echo '<button type="submit" 
-                                            class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors duration-300">
-                                            Subscribe
-                                          </button>';
-                                    echo '</form>';
-                                    echo '</div>';
-                                    echo '</div>';
-
-                                    // Bottom Bar
-                                    echo '<div class="col-span-full mt-8 pt-8 border-t border-gray-700 text-center text-gray-400">';
-                                    echo '<p style="font-family:' . $blockData['font_style'] . ';">' .
-                                        htmlspecialchars($blockData['copyright_text'] ?? 'Copyright © ' . date('Y') . ' BuildiFy. All rights reserved.') .
-                                        '</p>';
-                                    echo '</div>';
-
-                                    echo '</div>';
-                                    echo '</footer>';
-                                    break;
-
-                                default:
-                                    echo '<h3 style="font-family:' . $blockData['font_style'] . ';color:' . $blockData['font_color'] . ';font-size:' . ($blockData['font_size'] + 2) . 'px;font-weight:bold;margin-bottom:10px;">';
-                                    echo ucfirst($blockType);
-                                    echo '</h3>';
-                                    echo '<div style="font-family:' . $blockData['font_style'] . ';color:' . $blockData['font_color'] . ';font-size:' . $blockData['font_size'] . 'px;font-weight:' . $blockData['font_weight'] . ';">';
-                                    echo nl2br(htmlspecialchars($blockData['text'] ?? ''));
-                                    echo '</div>';
-                            }
-                            ?>
                         </div>
                 <?php
                     }
@@ -997,6 +1025,181 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 closePreview();
             }
         });
+
+        // Update the editBlock function in the script section
+        function editBlock(blockId) {
+            const blockElement = document.querySelector(`[data-block-id="${blockId}"]`).closest('.block-container');
+            const blockData = JSON.parse(blockElement.dataset.blockData);
+            const blockType = blockElement.querySelector('.block-content').dataset.blockType;
+            
+            // Create edit form with additional fields
+            const editForm = document.createElement('form');
+            editForm.classList.add('block-edit-form', 'p-4', 'bg-white', 'shadow-lg', 'rounded-lg');
+            editForm.innerHTML = `
+                <input type="hidden" name="edit_block_id" value="${blockId}">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Title</label>
+                        <input type="text" name="title" value="${blockData.title || ''}" 
+                            class="w-full p-2 border rounded">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Content</label>
+                        <textarea name="text" rows="4" 
+                            class="w-full p-2 border rounded">${blockData.text || ''}</textarea>
+                    </div>
+                    
+                    <!-- Font Settings -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Font Style</label>
+                            <select name="font_style" class="w-full p-2 border rounded">
+                                <option value="Arial, sans-serif" ${blockData.font_style === 'Arial, sans-serif' ? 'selected' : ''}>Arial</option>
+                                <option value="'Helvetica Neue', sans-serif" ${blockData.font_style === "'Helvetica Neue', sans-serif" ? 'selected' : ''}>Helvetica</option>
+                                <option value="Georgia, serif" ${blockData.font_style === 'Georgia, serif' ? 'selected' : ''}>Georgia</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Font Size (px)</label>
+                            <input type="number" name="font_size" value="${blockData.font_size || '16'}"
+                                class="w-full p-2 border rounded" min="8" max="72">
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Font Weight</label>
+                            <select name="font_weight" class="w-full p-2 border rounded">
+                                <option value="normal" ${blockData.font_weight === 'normal' ? 'selected' : ''}>Normal</option>
+                                <option value="bold" ${blockData.font_weight === 'bold' ? 'selected' : ''}>Bold</option>
+                                <option value="lighter" ${blockData.font_weight === 'lighter' ? 'selected' : ''}>Light</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Font Color</label>
+                            <input type="color" name="font_color" 
+                                value="${blockData.font_color || '#000000'}" 
+                                class="w-full">
+                        </div>
+                    </div>
+
+                    <!-- Image Upload -->
+                    ${blockType === 'header' || blockType === 'main_content' ? `
+                        <div>
+                            <label class="block text-sm font-medium mb-1">
+                                ${blockType === 'header' ? 'Logo/Image' : 'Content Image'}
+                            </label>
+                            <input type="text" name="${blockType === 'header' ? 'logo_url' : 'image_url'}" 
+                                value="${blockType === 'header' ? blockData.logo_url || '' : blockData.image_url || ''}"
+                                class="w-full p-2 border rounded mb-2" placeholder="Image URL">
+                            <input type="file" class="hidden" id="edit_image_upload_${blockId}" accept="image/*">
+                            <button type="button" 
+                                onclick="document.getElementById('edit_image_upload_${blockId}').click()"
+                                class="bg-gray-600 text-white px-3 py-1 rounded text-sm hover:bg-gray-700">
+                                <i class="fas fa-upload mr-1"></i> Upload New Image
+                            </button>
+                            ${(blockData.logo_url || blockData.image_url) ? `
+                                <div class="mt-2">
+                                    <img src="${blockData.logo_url || blockData.image_url}" 
+                                        alt="Current Image" class="max-h-20 mt-2">
+                                </div>
+                            ` : ''}
+                        </div>
+                    ` : ''}
+
+                    <!-- Background Settings -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Background Color</label>
+                            <input type="color" name="background_color" 
+                                value="${blockData.background_color || '#ffffff'}" 
+                                class="w-full">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Border Radius (px)</label>
+                            <input type="number" name="border_radius" 
+                                value="${blockData.border_radius || '0'}"
+                                class="w-full p-2 border rounded" min="0" max="50">
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end space-x-2 mt-4">
+                        <button type="button" onclick="cancelEdit(this)" 
+                            class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
+                            Cancel
+                        </button>
+                        <button type="submit" 
+                            class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                            Save Changes
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            // Add image upload handler
+            if (blockType === 'header' || blockType === 'main_content') {
+                const imageInput = editForm.querySelector(`#edit_image_upload_${blockId}`);
+                const imageUrlInput = editForm.querySelector(`[name="${blockType === 'header' ? 'logo_url' : 'image_url'}"]`);
+                
+                imageInput.addEventListener('change', function(e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = function(event) {
+                            imageUrlInput.value = event.target.result;
+                            // Update preview
+                            const preview = editForm.querySelector('img');
+                            if (preview) {
+                                preview.src = event.target.result;
+                            } else {
+                                const newPreview = document.createElement('img');
+                                newPreview.src = event.target.result;
+                                newPreview.alt = 'Preview';
+                                newPreview.className = 'max-h-20 mt-2';
+                                imageUrlInput.parentNode.appendChild(newPreview);
+                            }
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
+            }
+
+            // Replace block content with edit form
+            const blockContent = blockElement.querySelector('.block-content');
+            blockContent.style.display = 'none';
+            blockElement.appendChild(editForm);
+
+            // Handle form submission
+            editForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const formData = new FormData(editForm);
+                
+                try {
+                    const response = await fetch('update_block.php', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    if (response.ok) {
+                        location.reload();
+                    } else {
+                        alert('Failed to update block');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('Failed to update block');
+                }
+            });
+        }
+
+        function cancelEdit(button) {
+            const editForm = button.closest('.block-edit-form');
+            const blockElement = editForm.closest('.block-container');
+            const blockContent = blockElement.querySelector('.block-content');
+            
+            editForm.remove();
+            blockContent.style.display = 'block';
+        }
     </script>
 </body>
 
