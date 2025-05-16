@@ -1,10 +1,105 @@
-# BuildiFy a Content Management System
-BuildiFy a Content Management System using PHP, Javascript, Tailwind CSS and MySQL is a user-friendly platform that lets you create and customize websites effortlessly. Edit headers, footers, colors, and layouts, upload media, and preview changes in real-time—no coding required.
+# Buildify 🚀
 
-![image](https://github.com/user-attachments/assets/d8aa499e-670c-459a-a7c6-f47bee32a170)
+A dynamic website builder that empowers users to create stunning web pages with a block-based interface and real-time preview functionality.
 
+## Features ✨
 
+- **Block-Based Interface**: Intuitive block-based website building
+- **Real-Time Preview**: See changes as you make them
+- **Responsive Design**: All created websites are mobile-friendly
+- **Custom Styling**:
+  - Font customization (styles, weights, sizes)
+  - Color schemes
+  - Layout options
+- **Block Types**:
+  - Headers
+  - Content sections
+  - Image galleries
+  - Contact forms
+  - Footers
 
+## Technologies Used 🛠️
 
-### Figma Design 
-[Figma Design](https://www.figma.com/design/cghLntAJqycB9prmLo9qG5/Web%2FMobile-Design's?node-id=369-2&t=j8uzG1OsppbUK94J-1).
+- **Frontend**:
+  - HTML5
+  - CSS3 (Tailwind CSS)
+  - JavaScript
+  - Font Awesome Icons
+- **Backend**:
+  - PHP
+  - MySQL
+- **Dependencies**:
+  - Tailwind CSS v2.2.19
+  - Font Awesome v6.0.0-beta3
+
+## Installation 📦
+
+1. Clone the repository:
+
+```bash
+git clone https://github.com/yourusername/buildify.git
+```
+
+2. Set up the database:
+
+   - Import the `database.sql` file into your MySQL server
+   - Configure database connection in `config.php`
+
+3. Configure your web server:
+
+   - Point your web server to the project directory
+   - Ensure PHP 7.4+ is installed
+
+4. Install dependencies:
+
+```bash
+npm install
+```
+
+## Usage 💻
+
+1. Access the application through your web browser
+2. Create a new project or edit existing ones
+3. Add blocks by clicking the "Add Block" button
+4. Customize each block using the edit interface
+5. Preview your changes in real-time
+6. Save and publish your website
+
+## Configuration ⚙️
+
+Edit `config.php` to set up:
+
+- Database credentials
+- Site settings
+- Upload directories
+- API keys (if needed)
+
+## Contributing 🤝
+
+1. Fork the project
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## License 📄
+
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
+
+## Support 🆘
+
+For support, please email support@buildify.com or open an issue in the repository.
+
+## Authors ✍️
+
+- Your Name - _Initial work_ - [YourGitHub](https://github.com/yourusername)
+
+## Acknowledgments 🙏
+
+- Tailwind CSS team for the amazing framework
+- Font Awesome for the icons
+- All contributors who have helped this project grow
+
+## Screenshots 📸
+
+[Add screenshots of your application here]
