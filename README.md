@@ -82,17 +82,17 @@ Edit `config.php` to set up:
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-## License 📄
-
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
-
 ## Support 🆘
 
-For support, please email support@buildify.com or open an issue in the repository.
+For support, please email kimalfredmolina1224@gmail.com or open an issue in the repository.
 
 ## Authors ✍️
 
-- Your Name - _Initial work_ - [YourGitHub](https://github.com/yourusername)
+- Kim Alfred Molina - [Github](https://github.com/kimalfredmolina)
+- Laurence Deocareza - [Github](https://github.com/laurencedeocareza)
+- Jonathan Bermas - [Github](https://github.com/bermasjonathan)
+- Jonel Peñaflor - [Github](https://github.com/Jp-22-00540)
+- Dae-Yam Mark Dejaro - [Github](https://github.com/dageuu)
 
 ## Acknowledgments 🙏
 
@@ -101,5 +101,3 @@ For support, please email support@buildify.com or open an issue in the repositor
 - All contributors who have helped this project grow
 
 ## Screenshots 📸
-
-[Add screenshots of your application here]
