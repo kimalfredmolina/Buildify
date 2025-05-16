@@ -101,3 +101,7 @@ For support, please email kimalfredmolina1224@gmail.com or open an issue in the 
 - All contributors who have helped this project grow
 
 ## Screenshots 📸
+
+![image](https://github.com/user-attachments/assets/c50dd6f0-76d0-4d8c-9306-2a4c0209c2b6)
+
+![image](https://github.com/user-attachments/assets/fb23a418-107b-48f2-b379-22c09a20aed3)
