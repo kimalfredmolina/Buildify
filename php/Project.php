@@ -311,6 +311,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <option value="Arial, sans-serif">Arial</option>
                                 <option value="'Helvetica Neue', sans-serif">Helvetica</option>
                                 <option value="Georgia, serif">Georgia</option>
+                                <option value="'Times New Roman', serif">Times New Roman</option>
+                                <option value="Verdana, sans-serif">Verdana</option>
+                                <option value="'Courier New', monospace">Courier New</option>
+                                <option value="'Trebuchet MS', sans-serif">Trebuchet MS</option>
+                                <option value="Impact, sans-serif">Impact</option>
+                                <option value="'Open Sans', sans-serif">Open Sans</option>
+                                <option value="'Roboto', sans-serif">Roboto</option>
+                                <option value="'Lato', sans-serif">Lato</option>
+                                <option value="'Montserrat', sans-serif">Montserrat</option>
                             </select>
                         </div>
                         <div>
@@ -333,9 +342,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 Font Weight
                             </label>
                             <select class="w-full bg-gray-700 text-white rounded p-2" id="font_weight" name="font_weight">
-                                <option value="normal">Normal</option>
-                                <option value="bold">Bold</option>
-                                <option value="lighter">Light</option>
+                                <option value="100">Thin</option>
+                                <option value="100 italic">Thin Italic</option>
+                                <option value="200">Extra Light</option>
+                                <option value="200 italic">Extra Light Italic</option>
+                                <option value="300">Light</option>
+                                <option value="300 italic">Light Italic</option>
+                                <option value="normal">Normal (400)</option>
+                                <option value="normal italic">Normal Italic</option>
+                                <option value="500">Medium</option>
+                                <option value="500 italic">Medium Italic</option>
+                                <option value="600">Semi Bold</option>
+                                <option value="600 italic">Semi Bold Italic</option>
+                                <option value="bold">Bold (700)</option>
+                                <option value="bold italic">Bold Italic</option>
+                                <option value="800">Extra Bold</option>
+                                <option value="800 italic">Extra Bold Italic</option>
+                                <option value="900">Black</option>
+                                <option value="900 italic">Black Italic</option>
                             </select>
                         </div>
                     </div>
@@ -590,9 +614,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $blockId = $block['id'];
                         $blockType = $block['block_type'];
                 ?>
-                        <div class="block-container relative p-4 mb-4" 
+                        <div class="block-container relative p-4 mb-4"
                             data-block-id="<?php echo $blockId; ?>"
-                            data-block-data='<?php echo json_encode($blockData); ?>'
+                            data-block-data='<?php echo htmlspecialchars(json_encode($blockData), ENT_QUOTES, 'UTF-8'); ?>'
                             style="
                                 background-color: <?php echo $blockData['background_color']; ?>;
                                 padding: <?php echo $blockData['padding']; ?>px;
@@ -601,7 +625,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 position: relative;
                                 z-index: 1;
                             ">
-                            <div class="block-content" data-block-type="<?php echo $blockType; ?>">
+                            <div class="block-content" data-block-type="<?php echo $blockType; ?>"
+                                style="font-family: <?php echo $blockData['font_style']; ?>; 
+                                       font-weight: <?php echo strpos($blockData['font_weight'], 'italic') !== false ? explode(' ', $blockData['font_weight'])[0] : $blockData['font_weight']; ?>; 
+                                       font-style: <?php echo strpos($blockData['font_weight'], 'italic') !== false ? 'italic' : 'normal'; ?>;">
                                 <?php
                                 // Render block based on type
                                 switch ($blockType) {
@@ -846,13 +873,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 ?>
                             </div>
                             <div class="block-actions absolute right-4 top-4 space-x-2 z-10">
-                                <button onclick="editBlock(<?php echo $blockId; ?>)" 
+                                <button onclick="editBlock(<?php echo $blockId; ?>)"
                                     class="edit-block bg-blue-500 text-white p-1 rounded hover:bg-blue-600">
                                     <i class="fas fa-edit"></i>
                                 </button>
                                 <form method="POST" class="inline">
                                     <input type="hidden" name="block_id" value="<?php echo $blockId; ?>">
-                                    <button type="submit" name="delete_block" 
+                                    <button type="submit" name="delete_block"
                                         class="bg-red-500 text-white p-1 rounded hover:bg-red-600">
                                         <i class="fas fa-trash"></i>
                                     </button>
@@ -1031,7 +1058,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             const blockElement = document.querySelector(`[data-block-id="${blockId}"]`).closest('.block-container');
             const blockData = JSON.parse(blockElement.dataset.blockData);
             const blockType = blockElement.querySelector('.block-content').dataset.blockType;
-            
+
             // Create edit form with additional fields
             const editForm = document.createElement('form');
             editForm.classList.add('block-edit-form', 'p-4', 'bg-white', 'shadow-lg', 'rounded-lg');
@@ -1057,6 +1084,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <option value="Arial, sans-serif" ${blockData.font_style === 'Arial, sans-serif' ? 'selected' : ''}>Arial</option>
                                 <option value="'Helvetica Neue', sans-serif" ${blockData.font_style === "'Helvetica Neue', sans-serif" ? 'selected' : ''}>Helvetica</option>
                                 <option value="Georgia, serif" ${blockData.font_style === 'Georgia, serif' ? 'selected' : ''}>Georgia</option>
+                                <option value="'Times New Roman', serif" ${blockData.font_style === "'Times New Roman', serif" ? 'selected' : ''}>Times New Roman</option>
+                                <option value="Verdana, sans-serif" ${blockData.font_style === 'Verdana, sans-serif' ? 'selected' : ''}>Verdana</option>
+                                <option value="'Courier New', monospace" ${blockData.font_style === "'Courier New', monospace" ? 'selected' : ''}>Courier New</option>
+                                <option value="'Trebuchet MS', sans-serif" ${blockData.font_style === "'Trebuchet MS', sans-serif" ? 'selected' : ''}>Trebuchet MS</option>
+                                <option value="Impact, sans-serif" ${blockData.font_style === 'Impact, sans-serif' ? 'selected' : ''}>Impact</option>
+                                <option value="'Open Sans', sans-serif" ${blockData.font_style === "'Open Sans', sans-serif" ? 'selected' : ''}>Open Sans</option>
+                                <option value="'Roboto', sans-serif" ${blockData.font_style === "'Roboto', sans-serif" ? 'selected' : ''}>Roboto</option>
+                                <option value="'Lato', sans-serif" ${blockData.font_style === "'Lato', sans-serif" ? 'selected' : ''}>Lato</option>
+                                <option value="'Montserrat', sans-serif" ${blockData.font_style === "'Montserrat', sans-serif" ? 'selected' : ''}>Montserrat</option>
                             </select>
                         </div>
                         <div>
@@ -1070,9 +1106,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <div>
                             <label class="block text-sm font-medium mb-1">Font Weight</label>
                             <select name="font_weight" class="w-full p-2 border rounded">
-                                <option value="normal" ${blockData.font_weight === 'normal' ? 'selected' : ''}>Normal</option>
-                                <option value="bold" ${blockData.font_weight === 'bold' ? 'selected' : ''}>Bold</option>
-                                <option value="lighter" ${blockData.font_weight === 'lighter' ? 'selected' : ''}>Light</option>
+                                <option value="100" ${blockData.font_weight === '100' ? 'selected' : ''}>Thin</option>
+                                <option value="100 italic" ${blockData.font_weight === '100 italic' ? 'selected' : ''}>Thin Italic</option>
+                                <option value="200" ${blockData.font_weight === '200' ? 'selected' : ''}>Extra Light</option>
+                                <option value="200 italic" ${blockData.font_weight === '200 italic' ? 'selected' : ''}>Extra Light Italic</option>
+                                <option value="300" ${blockData.font_weight === '300' ? 'selected' : ''}>Light</option>
+                                <option value="300 italic" ${blockData.font_weight === '300 italic' ? 'selected' : ''}>Light Italic</option>
+                                <option value="400" ${blockData.font_weight === '400' || blockData.font_weight === 'normal' ? 'selected' : ''}>Normal</option>
+                                <option value="400 italic" ${blockData.font_weight === '400 italic' ? 'selected' : ''}>Normal Italic</option>
+                                <option value="500" ${blockData.font_weight === '500' ? 'selected' : ''}>Medium</option>
+                                <option value="500 italic" ${blockData.font_weight === '500 italic' ? 'selected' : ''}>Medium Italic</option>
+                                <option value="600" ${blockData.font_weight === '600' ? 'selected' : ''}>Semi Bold</option>
+                                <option value="600 italic" ${blockData.font_weight === '600 italic' ? 'selected' : ''}>Semi Bold Italic</option>
+                                <option value="700" ${blockData.font_weight === '700' || blockData.font_weight === 'bold' ? 'selected' : ''}>Bold</option>
+                                <option value="700 italic" ${blockData.font_weight === '700 italic' ? 'selected' : ''}>Bold Italic</option>
+                                <option value="800" ${blockData.font_weight === '800' ? 'selected' : ''}>Extra Bold</option>
+                                <option value="800 italic" ${blockData.font_weight === '800 italic' ? 'selected' : ''}>Extra Bold Italic</option>
+                                <option value="900" ${blockData.font_weight === '900' ? 'selected' : ''}>Black</option>
+                                <option value="900 italic" ${blockData.font_weight === '900 italic' ? 'selected' : ''}>Black Italic</option>
                             </select>
                         </div>
                         <div>
@@ -1140,7 +1191,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (blockType === 'header' || blockType === 'main_content') {
                 const imageInput = editForm.querySelector(`#edit_image_upload_${blockId}`);
                 const imageUrlInput = editForm.querySelector(`[name="${blockType === 'header' ? 'logo_url' : 'image_url'}"]`);
-                
+
                 imageInput.addEventListener('change', function(e) {
                     const file = e.target.files[0];
                     if (file) {
@@ -1173,13 +1224,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             editForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const formData = new FormData(editForm);
-                
+
                 try {
                     const response = await fetch('update_block.php', {
                         method: 'POST',
                         body: formData
                     });
-                    
+
                     if (response.ok) {
                         location.reload();
                     } else {
@@ -1196,7 +1247,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             const editForm = button.closest('.block-edit-form');
             const blockElement = editForm.closest('.block-container');
             const blockContent = blockElement.querySelector('.block-content');
-            
+
             editForm.remove();
             blockContent.style.display = 'block';
         }
