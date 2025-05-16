@@ -37,7 +37,7 @@ A dynamic website builder that empowers users to create stunning web pages with 
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/yourusername/buildify.git
+git clone https://github.com/kimalfredmolina/Buildify
 ```
 
 2. Set up the database:
