@@ -85,6 +85,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $blockData['copyright_text'] = $_POST['copyright_text'] ?? 'Copyright © ' . date('Y');
                 $blockData['social_links'] = $_POST['social_links'] ?? '';
                 break;
+
+            // Add this to your block creation handler in the switch statement
+            case 'cards':
+                $cards = [];
+                $cardCount = min(3, intval($_POST['card_count']));
+                
+                for ($i = 1; $i <= $cardCount; $i++) {
+                    $cards[] = [
+                        'title' => $_POST["card_title_$i"] ?? '',
+                        'description' => $_POST["card_description_$i"] ?? '',
+                        'image' => $_POST["card_image_$i"] ?? '',
+                        'button_text' => $_POST["card_button_text_$i"] ?? '',
+                        'button_url' => $_POST["card_button_url_$i"] ?? ''
+                    ];
+                }
+                $blockData['cards'] = $cards;
+                break;
         }
 
         $stmt = $conn->prepare("INSERT INTO project_blocks (project_id, block_type, data) VALUES (?, ?, ?)");
@@ -274,6 +291,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <option value="">Select a block</option>
                         <option value="header">Header</option>
                         <option value="main_content">Main Content</option>
+                        <option value="cards">Cards</option> 
                         <option value="forms">Forms</option>
                         <option value="footer">Footer</option>
                     </select>
@@ -566,6 +584,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             Social Links (comma separated)
                         </label>
                         <input class="w-full bg-gray-700 text-white rounded p-2" id="social_links" name="social_links" placeholder="facebook.com, twitter.com, instagram.com">
+                    </div>
+                </div>
+
+                <!-- Cards Specific Fields -->
+                <div id="cards-fields" class="block-fields">
+                    <div class="mb-3">
+                        <label class="block text-gray-300 text-sm font-bold mb-2">
+                            Number of Cards (max 3)
+                        </label>
+                        <select class="w-full bg-gray-700 text-white rounded p-2" name="card_count" id="card_count" onchange="updateCardFields(this.value)">
+                            <option value="1">1 Card</option>
+                            <option value="2">2 Cards</option>
+                            <option value="3">3 Cards</option>
+                        </select>
+                    </div>
+
+                    <div id="cards-container">
+                        <!-- Card 1 -->
+                        <div class="card-fields mb-6 p-4 border border-gray-600 rounded">
+                            <h4 class="text-white mb-4">Card 1</h4>
+                            <div class="mb-3">
+                                <label class="block text-gray-300 text-sm font-bold mb-2">Card Title</label>
+                                <input class="w-full bg-gray-700 text-white rounded p-2" name="card_title_1">
+                            </div>
+                            <div class="mb-3">
+                                <label class="block text-gray-300 text-sm font-bold mb-2">Card Description</label>
+                                <textarea class="w-full bg-gray-700 text-white rounded p-2" name="card_description_1" rows="3"></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label class="block text-gray-300 text-sm font-bold mb-2">Card Image</label>
+                                <input type="text" class="w-full bg-gray-700 text-white rounded p-2" name="card_image_1" placeholder="Image URL">
+                                <input type="file" id="card_image_upload_1" class="hidden" accept="image/*">
+                                <button type="button" onclick="document.getElementById('card_image_upload_1').click()" 
+                                    class="mt-1 bg-gray-600 text-white px-3 py-1 rounded text-sm">
+                                    <i class="fas fa-upload mr-1"></i> Upload Image
+                                </button>
+                            </div>
+                            <div class="mb-3">
+                                <label class="block text-gray-300 text-sm font-bold mb-2">Button Text</label>
+                                <input class="w-full bg-gray-700 text-white rounded p-2" name="card_button_text_1">
+                            </div>
+                            <div class="mb-3">
+                                <label class="block text-gray-300 text-sm font-bold mb-2">Button URL</label>
+                                <input class="w-full bg-gray-700 text-white rounded p-2" name="card_button_url_1">
+                            </div>
+                        </div>
+                        
+                        <!-- Card 2 and 3 containers will be dynamically shown/hidden -->
                     </div>
                 </div>
 
@@ -862,6 +928,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                         echo '</footer>';
                                         break;
 
+                                    case 'cards':
+                                        echo '<div class="grid grid-cols-1 md:grid-cols-' . min(3, count($blockData['cards'])) . ' gap-6 p-6">';
+                                        foreach ($blockData['cards'] as $index => $card) {
+                                            echo '<div class="bg-white rounded-lg shadow-lg overflow-hidden transform transition-transform duration-300 hover:-translate-y-2">
+                                                    <div class="relative pb-48 overflow-hidden">
+                                                        <img class="absolute inset-0 h-full w-full object-cover transform transition-transform duration-300 hover:scale-105" 
+                                                             src="' . htmlspecialchars($card['image']) . '" 
+                                                             alt="' . htmlspecialchars($card['title']) . '">
+                                                    </div>
+                                                    <div class="p-6">
+                                                        <h3 class="text-xl font-bold mb-2" style="font-family:' . $blockData['font_style'] . ';
+                                                                                             color:' . $blockData['font_color'] . ';">
+                                                            ' . htmlspecialchars($card['title']) . '
+                                                        </h3>
+                                                        <p class="text-gray-600 mb-4" style="font-family:' . $blockData['font_style'] . ';">
+                                                            ' . htmlspecialchars($card['description']) . '
+                                                        </p>
+                                                        ' . (!empty($card['button_text']) ? '
+                                                        <a href="' . htmlspecialchars($card['button_url']) . '" 
+                                                           class="inline-block px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors duration-300">
+                                                            ' . htmlspecialchars($card['button_text']) . '
+                                                        </a>' : '') . '
+                                                    </div>
+                                                </div>';
+                                        }
+                                        echo '</div>';
+                                        break;
+                                    
                                     default:
                                         echo '<h3 style="font-family:' . $blockData['font_style'] . ';color:' . $blockData['font_color'] . ';font-size:' . ($blockData['font_size'] + 2) . 'px;font-weight:bold;margin-bottom:10px;">';
                                         echo ucfirst($blockType);
@@ -1251,6 +1345,113 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             editForm.remove();
             blockContent.style.display = 'block';
         }
+
+        function updateCardFields(count) {
+            const container = document.getElementById('cards-container');
+            const existingCards = container.children.length;
+            
+            // Remove extra cards if needed
+            while (container.children.length > count) {
+                container.removeChild(container.lastChild);
+            }
+            
+            // Add new cards if needed
+            for (let i = existingCards + 1; i <= count; i++) {
+                const cardHtml = `
+                    <div class="card-fields mb-6 p-4 border border-gray-600 rounded">
+                        <h4 class="text-white mb-4">Card ${i}</h4>
+                        <div class="mb-3">
+                            <label class="block text-gray-300 text-sm font-bold mb-2">Card Title</label>
+                            <input class="w-full bg-gray-700 text-white rounded p-2" name="card_title_${i}">
+                        </div>
+                        <div class="mb-3">
+                            <label class="block text-gray-300 text-sm font-bold mb-2">Card Description</label>
+                            <textarea class="w-full bg-gray-700 text-white rounded p-2" name="card_description_${i}" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="block text-gray-300 text-sm font-bold mb-2">Card Image</label>
+                            <input type="text" class="w-full bg-gray-700 text-white rounded p-2" name="card_image_${i}" placeholder="Image URL">
+                            <input type="file" id="card_image_upload_${i}" class="hidden" accept="image/*">
+                            <button type="button" onclick="handleCardImageUpload(${i})" 
+                                class="mt-1 bg-gray-600 text-white px-3 py-1 rounded text-sm">
+                                <i class="fas fa-upload mr-1"></i> Upload Image
+                            </button>
+                            <div id="card_image_preview_${i}" class="mt-2"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="block text-gray-300 text-sm font-bold mb-2">Button Text</label>
+                            <input class="w-full bg-gray-700 text-white rounded p-2" name="card_button_text_${i}">
+                        </div>
+                        <div class="mb-3">
+                            <label class="block text-gray-300 text-sm font-bold mb-2">Button URL</label>
+                            <input class="w-full bg-gray-700 text-white rounded p-2" name="card_button_url_${i}">
+                        </div>
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', cardHtml);
+            }
+        }
+
+        // Add this new function to handle card image uploads
+        function handleCardImageUpload(cardIndex) {
+            const fileInput = document.getElementById(`card_image_upload_${cardIndex}`);
+            const imageUrlInput = document.querySelector(`[name="card_image_${cardIndex}"]`);
+            const previewContainer = document.getElementById(`card_image_preview_${cardIndex}`);
+
+            fileInput.click();
+
+            fileInput.onchange = function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        imageUrlInput.value = event.target.result;
+                        
+                        // Update preview
+                        previewContainer.innerHTML = `
+                            <img src="${event.target.result}" 
+                                 alt="Card ${cardIndex} Preview" 
+                                 class="max-h-32 mt-2 rounded shadow-sm">
+                        `;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            };
+        }
+
+        // Add this to initialize image upload handlers for existing cards
+        document.addEventListener('DOMContentLoaded', function() {
+            const container = document.getElementById('cards-container');
+            const cardCount = container.children.length;
+            
+            // Initialize handlers for existing cards
+            for (let i = 1; i <= cardCount; i++) {
+                const fileInput = document.getElementById(`card_image_upload_${i}`);
+                if (fileInput) {
+                    fileInput.addEventListener('change', function(e) {
+                        const file = e.target.files[0];
+                        if (file) {
+                            const reader = new FileReader();
+                            reader.onload = function(event) {
+                                const imageUrlInput = document.querySelector(`[name="card_image_${i}"]`);
+                                imageUrlInput.value = event.target.result;
+                                
+                                // Update preview
+                                const previewContainer = document.getElementById(`card_image_preview_${i}`);
+                                if (previewContainer) {
+                                    previewContainer.innerHTML = `
+                                        <img src="${event.target.result}" 
+                                             alt="Card ${i} Preview" 
+                                             class="max-h-32 mt-2 rounded shadow-sm">
+                                    `;
+                                }
+                            };
+                            reader.readAsDataURL(file);
+                        }
+                    });
+                }
+            }
+        });
     </script>
 </body>
 

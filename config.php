@@ -1,7 +1,7 @@
 <?php
 $host = "localhost";
 $user = "root";
-$password = "@kimalfred22"; //@kimalfred22
+$password = ""; //@kimalfred22
 $dbname = "buildify";
 
 $conn = new mysqli($host, $user, $password, $dbname);
